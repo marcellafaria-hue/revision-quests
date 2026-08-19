@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Castaway Haiku 🌊🌲</title>
+<style>
+  :root{
+    --deep: #142032;
+    --deep2: #1f3a3a;
+    --gold: #e0b04a;
+    --gold-dark: #c1902a;
+    --teal: #3ea08c;
+    --green: #4caf7d;
+    --red: #e8555f;
+    --card: #fffdf6;
+    --ink: #1c2320;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: radial-gradient(circle at 20% 10%, #274a4a 0%, var(--deep) 45%, #0a1420 100%);
+    color: var(--ink);
+    overflow-x:hidden;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:720px; margin:0 auto; padding:24px 16px 60px;
+  }
+  header.top{ text-align:center; color:var(--gold); margin-bottom:14px; }
+  header.top h1{
+    font-size:1.4rem; margin:6px 0 2px; letter-spacing:0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  header.top p{ color:#d8e6de; margin:0; font-size:0.95rem; }
+
+  .progress{ display:flex; justify-content:center; gap:10px; margin: 18px 0 22px; flex-wrap:wrap; }
+  .progress .dot{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#1c2f2f; color:#7fa89a; font-weight:bold; font-size:0.85rem;
+    border:2px solid #33534f; transition: all .3s ease;
+  }
+  .progress .dot.active{ background:var(--gold); color:var(--deep); border-color:var(--gold); transform:scale(1.15); }
+  .progress .dot.done{ background:var(--green); color:white; border-color:var(--green); }
+
+  .card{
+    background: var(--card); border-radius:18px; padding:22px 22px 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35); animation: floatIn .5s ease;
+  }
+  @keyframes floatIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  .card h2{
+    margin-top:0; font-size:1.25rem; color:var(--deep2);
+    border-bottom: 3px dashed var(--gold-dark); padding-bottom:10px;
+  }
+  .flavor{
+    background:#eef6f2; border-left:4px solid var(--teal);
+    padding:10px 14px; border-radius:8px; font-style:italic; color:#333;
+    margin-bottom:18px; font-size:0.97rem;
+  }
+
+  .question{ margin-bottom: 22px; }
+  .question p.prompt{ font-weight:bold; margin:0 0 10px; line-height:1.4; }
+  .haiku-block{
+    background:#f4faf7; border:1px dashed #9fc9bb; border-radius:10px;
+    padding:10px 14px; margin-bottom:10px; font-style:italic; line-height:1.7;
+  }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt-btn{
+    text-align:left; padding:10px 14px; border-radius:10px; border:2px solid #d9e2dc;
+    background:#f7faf8; cursor:pointer; font-family:inherit; font-size:0.97rem;
+    color:var(--ink); transition: all .15s ease;
+  }
+  .opt-btn:hover:not(:disabled){ border-color: var(--teal); background:#eaf7f1; }
+  .opt-btn:disabled{ cursor:default; }
+  .opt-btn.wrong{ background:#fdeaea; border-color:var(--red); color:#8a1f27; }
+  .opt-btn.reveal{ background:#e2f7ea; border-color:var(--green); color:#1c5c3a; font-weight:bold; }
+
+  .feedback{ margin-top:6px; font-size:0.9rem; min-height:1.2em; }
+  .feedback.good{ color:#1c5c3a; }
+  .feedback.bad{ color:#8a1f27; }
+
+  .next-btn, .start-btn, .restart-btn{
+    display:block; margin:18px auto 0; padding:12px 28px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border:none; border-radius:30px; font-size:1.05rem; font-weight:bold;
+    color:var(--deep); cursor:pointer; box-shadow: 0 8px 18px rgba(193,144,42,0.4);
+    font-family:inherit;
+  }
+  .next-btn:hover, .start-btn:hover, .restart-btn:hover{ transform: translateY(-2px); }
+  .hidden{ display:none !important; }
+
+  .score-pill{
+    position:sticky; top:8px; float:right; background:var(--deep2); color:var(--gold);
+    padding:6px 14px; border-radius:20px; font-weight:bold; font-size:0.9rem;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .final h2{ text-align:center; }
+  .treasure{ font-size:4rem; text-align:center; margin:10px 0; }
+  .final p{ text-align:center; font-size:1.05rem; }
+  .stat-line{ text-align:center; font-size:1.4rem; font-weight:bold; color:var(--deep2); margin: 10px 0 4px;}
+
+  .haiku-line-input{
+    width:100%; padding:10px 12px; margin-bottom:4px; border-radius:8px;
+    border:2px solid #d9e2dc; font-family:inherit; font-size:1rem; font-style:italic;
+  }
+  .haiku-label{ font-size:0.8rem; color:#5a6a63; font-weight:bold; margin-bottom:2px; display:block; }
+  .haiku-field{ margin-bottom:14px; }
+  .reveal-poem{
+    background:#f4faf7; border:2px dashed var(--teal); border-radius:12px;
+    padding:14px 18px; margin-top:14px; font-style:italic; line-height:1.9; text-align:center;
+  }
+
+  canvas#confetti{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+  footer.note{ text-align:center; color:#7fa89a; font-size:0.8rem; margin-top:26px; }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+  <header class="top">
+    <div style="font-size:2.2rem;">🌊🌲</div>
+    <h1>Castaway Haiku</h1>
+    <p>Where <em>Hunt for the Wilderpeople</em> meets <em>The Tempest</em> — a syllable &amp; haiku quest</p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+  <div id="stage"></div>
+
+  <footer class="note">Made for our 7th grade revision — count on, poets! 🍃</footer>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const stations = [
+  {
+    type: "mc",
+    title: "Camp 1 · Syllable Bootcamp",
+    subtitle: "Counting Syllables",
+    icon: "🔤",
+    flavor: "A wild storm has swept Ricky and Hec's boat out to sea, washing them up on a strange island. To find their way home, they must first master the art of counting syllables. Clap it out and choose the right number!",
+    questions: [
+      { prompt: "How many syllables in \"storm\"?", options: ["1", "2", "3", "4"], correct: 0,
+        good: "Right! One clean beat: storm.", bad: "It's 1 syllable — storm." },
+      { prompt: "How many syllables in \"island\"?", options: ["1", "2", "3", "4"], correct: 1,
+        good: "Yes! is-land = 2 syllables.", bad: "It's 2 syllables: is-land." },
+      { prompt: "How many syllables in \"wilderness\"?", options: ["2", "3", "4", "5"], correct: 1,
+        good: "Correct! wil-der-ness = 3 syllables.", bad: "It's 3 syllables: wil-der-ness." },
+      { prompt: "How many syllables in \"mysterious\"?", options: ["2", "3", "4", "5"], correct: 2,
+        good: "Yes! my-ste-ri-ous = 4 syllables.", bad: "It's 4 syllables: my-ste-ri-ous." },
+      { prompt: "How many syllables in \"backpack\"?", options: ["1", "2", "3", "4"], correct: 1,
+        good: "Right! back-pack = 2 syllables.", bad: "It's 2 syllables: back-pack." }
+    ]
+  },
+  {
+    type: "mc",
+    title: "Camp 2 · The 5-7-5 Pattern",
+    subtitle: "Haiku Line Lengths",
+    icon: "📏",
+    flavor: "An old sorcerer named Prospero appears from the mist: \"A haiku has 3 lines — 5 syllables, then 7, then 5 again. Prove you can count a whole line!\"",
+    questions: [
+      { prompt: "Count the syllables: \"The storm sweeps the ship\"", options: ["4", "5", "6", "7"], correct: 1,
+        good: "Yes! The-storm-sweeps-the-ship = 5 syllables.", bad: "It's 5 syllables — perfect for line 1 or 3 of a haiku." },
+      { prompt: "Count the syllables: \"Ricky hides in a dark cave\"", options: ["6", "7", "8", "9"], correct: 1,
+        good: "Correct! Ric-ky hides in a dark cave = 7 syllables.", bad: "It's 7 syllables — perfect for the middle line of a haiku." },
+      { prompt: "Count the syllables: \"Ariel flies through the ferns\"", options: ["6", "7", "8", "5"], correct: 1,
+        good: "Right! Ar-i-el flies through the ferns = 7 syllables.", bad: "It's 7 syllables — remember, Ariel is 3 syllables (Ar-i-el)." },
+      { prompt: "Count the syllables: \"Rain falls on the isle\"", options: ["4", "5", "6", "7"], correct: 1,
+        good: "Yes! Rain falls on the isle = 5 syllables.", bad: "It's 5 syllables — a perfect first or third line." }
+    ]
+  },
+  {
+    type: "mc",
+    title: "Camp 3 · Complete the Haiku",
+    subtitle: "Choosing the Right Line",
+    icon: "🧩",
+    flavor: "Caliban grins from behind a rock: \"Only the line with exactly 5 syllables will finish the spell. Choose wisely, castaways.\"",
+    questions: [
+      { prompt: "Storm clouds hide the sun (5)<br>Ricky and Hec drift at sea (7)<br>____________ (5)",
+        options: ["Land appears at last", "They finally see land now", "An island in the mist", "A new island for them both"], correct: 0,
+        good: "Yes! \"Land appears at last\" is exactly 5 syllables.", bad: "\"Land appears at last\" is the only 5-syllable option." },
+      { prompt: "Caliban watches (5)<br>Two strangers wash on his shore (7)<br>____________ (5)",
+        options: ["He is not alone", "He feels less alone now", "The island holds three now", "He will not be alone anymore"], correct: 0,
+        good: "Correct! \"He is not alone\" is exactly 5 syllables.", bad: "\"He is not alone\" is the only 5-syllable option." },
+      { prompt: "Ariel appears (5)<br>Above the misty green bush (7)<br>____________ (5)",
+        options: ["Magic fills the air", "The air is full of magic", "Magic is everywhere", "There is magic in this air"], correct: 0,
+        good: "Right! \"Magic fills the air\" is exactly 5 syllables.", bad: "\"Magic fills the air\" is the only 5-syllable option." },
+      { prompt: "Hec lights the campfire (5)<br>Sparks rise like stars in the night (7)<br>____________ (5)",
+        options: ["Peace on the island", "Peace fills the whole island", "The island feels peaceful now", "There is peace on this island"], correct: 0,
+        good: "Yes! \"Peace on the island\" is exactly 5 syllables.", bad: "\"Peace on the island\" is the only 5-syllable option." }
+    ]
+  },
+  {
+    type: "mc",
+    title: "Camp 4 · Spot the Broken Line",
+    subtitle: "Haiku Detective",
+    icon: "🔍",
+    flavor: "Prospero tests you one last time: \"Every true haiku follows 5-7-5. Find the line that breaks the spell — or tell me if the poem is already perfect.\"",
+    questions: [
+      { prompt: "1. Storm clouds fill the sky<br>2. Ricky and Hector are running through bush<br>3. Danger fills the air",
+        options: ["Line 1", "Line 2", "Line 3", "None — it's correct!"], correct: 1,
+        good: "Right! Line 2 has way more than 7 syllables.", bad: "Line 2 is the problem — count it, it's much longer than 7 syllables." },
+      { prompt: "1. Rain taps on the roof<br>2. Hec and Ricky wait and watch<br>3. The bush holds its breath",
+        options: ["Line 1", "Line 2", "Line 3", "None — it's correct!"], correct: 3,
+        good: "Yes! Every line is correct: 5-7-5.", bad: "Actually this one is perfect — 5, 7, 5. No broken line here." },
+      { prompt: "1. Waves crash<br>2. The island keeps its secrets<br>3. Prospero smiles wide",
+        options: ["Line 1", "Line 2", "Line 3", "None — it's correct!"], correct: 0,
+        good: "Correct! \"Waves crash\" is only 2 syllables — far short of 5.", bad: "Line 1 is the problem — \"Waves crash\" is only 2 syllables." },
+      { prompt: "1. Ariel takes flight<br>2. Wind carries her far away<br>3. She soars above the whole entire forest",
+        options: ["Line 1", "Line 2", "Line 3", "None — it's correct!"], correct: 2,
+        good: "Right! Line 3 has way more than 5 syllables.", bad: "Line 3 is the problem — it's much longer than 5 syllables." }
+    ]
+  },
+  {
+    type: "creative",
+    title: "Camp 5 · Write Your Own Castaway Haiku",
+    subtitle: "Your Turn to Create",
+    icon: "🖋️",
+    flavor: "You've proven you can count! Now write your own haiku (5-7-5) about Ricky and Hec's bush adventure, Prospero's storm-tossed island, or your own castaway mash-up. Clap out the syllables as you go."
+  }
+];
+
+/* ---------------- STATE ---------------- */
+let current = 0;
+let totalStars = 0;
+let totalQuestions = stations.filter(s => s.type === "mc")
+  .reduce((s, st) => s + st.questions.length, 0);
+
+const stage = document.getElementById('stage');
+const progressEl = document.getElementById('progress');
+
+function renderProgress(){
+  progressEl.innerHTML = '';
+  stations.forEach((st, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : (i < current ? ' done' : ''));
+    d.textContent = i < current ? '✓' : st.icon;
+    progressEl.appendChild(d);
+  });
+}
+
+function renderIntro(){
+  stage.innerHTML = `
+    <div class="card">
+      <h2>⛈️ A Storm, A Bush, A Strange Island</h2>
+      <p>A wild storm has swept Ricky and Hec's boat out to sea during their bush trek — and washed them up on a strange, magical island. An old sorcerer named Prospero says only those who master the ancient art of <strong>haiku</strong> (5-7-5 syllables) may find their way home.</p>
+      <p>Cross <strong>5 camps</strong> to prove your syllable skills. Ready?</p>
+      <button class="start-btn" onclick="startQuest()">Begin the Haiku Quest 🍃</button>
+    </div>
+  `;
+}
+
+function startQuest(){
+  current = 0;
+  totalStars = 0;
+  renderProgress();
+  renderStation();
+}
+
+function renderStation(){
+  renderProgress();
+  const st = stations[current];
+  if (st.type === "creative") {
+    renderCreativeStation(st);
+    return;
+  }
+
+  let qHtml = '';
+  st.questions.forEach((q, qi) => {
+    const opts = q.options.map((opt, oi) =>
+      `<button class="opt-btn" onclick="answer(${qi}, ${oi}, this)">${opt}</button>`
+    ).join('');
+    qHtml += `
+      <div class="question" id="q-${qi}">
+        <p class="prompt">${qi + 1}. ${q.prompt}</p>
+        <div class="options">${opts}</div>
+        <div class="feedback" id="fb-${qi}"></div>
+      </div>
+    `;
+  });
+
+  stage.innerHTML = `
+    <div class="card">
+      <span class="score-pill">⭐ ${totalStars}/${totalQuestions}</span>
+      <h2>${st.icon} ${st.title}</h2>
+      <p style="margin-top:-8px;color:#666;font-weight:bold;">${st.subtitle}</p>
+      <div class="flavor">${st.flavor}</div>
+      ${qHtml}
+      <button class="next-btn hidden" id="next-btn" onclick="nextStation()">
+        Trek to the Next Camp →
+      </button>
+    </div>
+  `;
+  window.__answered = new Array(st.questions.length).fill(false);
+}
+
+function renderCreativeStation(st){
+  stage.innerHTML = `
+    <div class="card">
+      <span class="score-pill">⭐ ${totalStars}/${totalQuestions}</span>
+      <h2>${st.icon} ${st.title}</h2>
+      <p style="margin-top:-8px;color:#666;font-weight:bold;">${st.subtitle}</p>
+      <div class="flavor">${st.flavor}</div>
+
+      <div class="haiku-field">
+        <span class="haiku-label">LINE 1 — 5 syllables</span>
+        <input class="haiku-line-input" id="line1" type="text" placeholder="e.g. Storm clouds hide the sun">
+      </div>
+      <div class="haiku-field">
+        <span class="haiku-label">LINE 2 — 7 syllables</span>
+        <input class="haiku-line-input" id="line2" type="text" placeholder="e.g. Ricky and Hec drift at sea">
+      </div>
+      <div class="haiku-field">
+        <span class="haiku-label">LINE 3 — 5 syllables</span>
+        <input class="haiku-line-input" id="line3" type="text" placeholder="e.g. Land appears at last">
+      </div>
+
+      <button class="next-btn" id="reveal-btn" onclick="revealPoem()">Reveal My Haiku ✨</button>
+      <div id="poem-display"></div>
+      <button class="next-btn hidden" id="next-btn" onclick="nextStation()">Finish the Journey! 🏆</button>
+    </div>
+  `;
+}
+
+function revealPoem(){
+  const l1 = document.getElementById('line1').value.trim() || "(a quiet island)";
+  const l2 = document.getElementById('line2').value.trim() || "(waiting for the right words)";
+  const l3 = document.getElementById('line3').value.trim() || "(the storm rolls on)";
+  document.getElementById('poem-display').innerHTML = `
+    <div class="reveal-poem">
+      ${l1}<br>${l2}<br>${l3}
+    </div>
+    <p style="text-align:center;color:#3ea08c;font-weight:bold;margin-top:8px;">Beautiful work, poet! Read it aloud and clap out the syllables to check your count.</p>
+  `;
+  document.getElementById('next-btn').classList.remove('hidden');
+}
+
+function answer(qi, oi, btnEl){
+  const st = stations[current];
+  const q = st.questions[qi];
+  if (window.__answered[qi]) return;
+  window.__answered[qi] = true;
+
+  const container = document.getElementById('q-' + qi);
+  const buttons = container.querySelectorAll('.opt-btn');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('reveal');
+  });
+
+  const fb = document.getElementById('fb-' + qi);
+  if (oi === q.correct) {
+    totalStars++;
+    fb.textContent = '⭐ ' + q.good;
+    fb.className = 'feedback good';
+  } else {
+    btnEl.classList.add('wrong');
+    fb.textContent = '💭 ' + q.bad;
+    fb.className = 'feedback bad';
+  }
+
+  document.querySelector('.score-pill').textContent = `⭐ ${totalStars}/${totalQuestions}`;
+
+  if (window.__answered.every(a => a)) {
+    document.getElementById('next-btn').classList.remove('hidden');
+  }
+}
+
+function nextStation(){
+  current++;
+  if (current >= stations.length) {
+    renderFinal();
+  } else {
+    renderStation();
+  }
+}
+
+function renderFinal(){
+  progressEl.querySelectorAll('.dot').forEach(d => d.classList.add('done'));
+  let tier;
+  const pct = totalStars / totalQuestions;
+  if (pct === 1) { tier = "Perfect count! Prospero and Hec are both impressed. 🏹📖"; }
+  else if (pct >= 0.8) { tier = "Fantastic syllable skills! Just a couple to double-check. 🍃"; }
+  else if (pct >= 0.6) { tier = "Good work! Review the tricky lines before Monday. 🔎"; }
+  else { tier = "You made it off the island — now go back and clap out those syllables again! 👏"; }
+
+  stage.innerHTML = `
+    <div class="card final">
+      <h2>🏆 You Escaped With a Poet's Ear!</h2>
+      <div class="treasure">🌊🖋️🌲</div>
+      <div class="stat-line">⭐ ${totalStars} / ${totalQuestions} stars earned</div>
+      <p>${tier}</p>
+      <p>Great job revising syllables and haiku structure this weekend, castaway!</p>
+      <button class="restart-btn" onclick="startQuest()">Sail Again 🔁</button>
+    </div>
+  `;
+  launchConfetti();
+}
+
+/* ---------------- Confetti (vanilla canvas) ---------------- */
+function launchConfetti(){
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#e0b04a', '#3ea08c', '#4caf7d', '#ffffff', '#c1902a'];
+  const pieces = Array.from({length: 140}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height,
+    r: 4 + Math.random() * 5,
+    c: colors[Math.floor(Math.random() * colors.length)],
+    vy: 2 + Math.random() * 3,
+    vx: -1.5 + Math.random() * 3,
+    rot: Math.random() * 360,
+    vr: -6 + Math.random() * 12
+  }));
+  let frames = 0;
+  function tick(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r * 0.6);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 260) {
+      requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  tick();
+}
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('confetti');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+/* ---------------- Init ---------------- */
+renderProgress();
+renderIntro();
+</script>
+</body>
+</html>
