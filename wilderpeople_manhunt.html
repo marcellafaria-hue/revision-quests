@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Great Wilderpeople Manhunt 🌲</title>
+<style>
+  :root{
+    --deep: #1c2b1a;
+    --deep2: #2f4a2a;
+    --gold: #e0a634;
+    --gold-dark: #c1861f;
+    --teal: #4a9d6f;
+    --coral: #d9622b;
+    --green: #4caf7d;
+    --red: #e8555f;
+    --card: #fffdf7;
+    --ink: #22261c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: radial-gradient(circle at 20% 10%, #3a5c33 0%, var(--deep) 45%, #0f160c 100%);
+    color: var(--ink);
+    overflow-x:hidden;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:720px; margin:0 auto; padding:24px 16px 60px;
+  }
+  header.top{
+    text-align:center; color:var(--gold); margin-bottom:14px;
+  }
+  header.top h1{
+    font-size:1.5rem; margin:6px 0 2px; letter-spacing:0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  header.top p{ color:#dbe8d2; margin:0; font-size:0.95rem; }
+
+  .progress{
+    display:flex; justify-content:center; gap:10px; margin: 18px 0 22px;
+  }
+  .progress .dot{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#243620; color:#8fae83; font-weight:bold; font-size:0.85rem;
+    border:2px solid #3d5a37; transition: all .3s ease;
+  }
+  .progress .dot.active{ background:var(--gold); color:var(--deep); border-color:var(--gold); transform:scale(1.15); }
+  .progress .dot.done{ background:var(--green); color:white; border-color:var(--green); }
+
+  .card{
+    background: var(--card);
+    border-radius:18px;
+    padding:22px 22px 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    animation: floatIn .5s ease;
+  }
+  @keyframes floatIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  .card h2{
+    margin-top:0; font-size:1.3rem; color:var(--deep2);
+    border-bottom: 3px dashed var(--gold-dark);
+    padding-bottom:10px;
+  }
+  .flavor{
+    background:#eef4ea; border-left:4px solid var(--teal);
+    padding:10px 14px; border-radius:8px; font-style:italic; color:#333;
+    margin-bottom:18px; font-size:0.97rem;
+  }
+
+  .question{ margin-bottom: 22px; }
+  .question p.prompt{ font-weight:bold; margin:0 0 10px; line-height:1.4; }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt-btn{
+    text-align:left;
+    padding:10px 14px; border-radius:10px; border:2px solid #dbe3d4;
+    background:#f6f8f3; cursor:pointer; font-family:inherit; font-size:0.97rem;
+    color:var(--ink); transition: all .15s ease;
+  }
+  .opt-btn:hover:not(:disabled){ border-color: var(--teal); background:#e9f5ec; }
+  .opt-btn:disabled{ cursor:default; }
+  .opt-btn.wrong{ background:#fdeaea; border-color:var(--red); color:#8a1f27; }
+  .opt-btn.reveal{ background:#e2f7ea; border-color:var(--green); color:#1c5c3a; font-weight:bold; }
+
+  .feedback{ margin-top:6px; font-size:0.9rem; min-height:1.2em; }
+  .feedback.good{ color:#1c5c3a; }
+  .feedback.bad{ color:#8a1f27; }
+
+  .next-btn, .start-btn, .restart-btn{
+    display:block; margin:18px auto 0; padding:12px 28px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border:none; border-radius:30px; font-size:1.05rem; font-weight:bold;
+    color:var(--deep); cursor:pointer; box-shadow: 0 8px 18px rgba(193,134,31,0.4);
+    font-family:inherit;
+  }
+  .next-btn:hover, .start-btn:hover, .restart-btn:hover{ transform: translateY(-2px); }
+  .hidden{ display:none !important; }
+
+  .score-pill{
+    position:sticky; top:8px; float:right; background:var(--deep2); color:var(--gold);
+    padding:6px 14px; border-radius:20px; font-weight:bold; font-size:0.9rem;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .final h2{ text-align:center; }
+  .treasure{ font-size:4rem; text-align:center; margin:10px 0; }
+  .final p{ text-align:center; font-size:1.05rem; }
+  .stat-line{ text-align:center; font-size:1.4rem; font-weight:bold; color:var(--deep2); margin: 10px 0 4px;}
+
+  canvas#confetti{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+
+  footer.note{
+    text-align:center; color:#8fae83; font-size:0.8rem; margin-top:26px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+  <header class="top">
+    <div style="font-size:2.2rem;">🌲🐗</div>
+    <h1>The Great Wilderpeople Manhunt</h1>
+    <p>A weekend revision quest through <em>Hunt for the Wilderpeople</em></p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="stage"></div>
+
+  <footer class="note">Made for our 7th grade revision — SKUX LIFE, and see you Monday! 🐐</footer>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const stations = [
+  {
+    title: "Camp 1 · Meet the Wilderpeople",
+    subtitle: "The Story of Hunt for the Wilderpeople",
+    flavor: "You've just been dropped off at a farm on the edge of the bush. Before the chase begins, make sure you know the crew...",
+    icon: "🏕️",
+    questions: [
+      {
+        prompt: "Why is Ricky Baker sent to live with Bella and Hec?",
+        options: ["He won a farm-stay contest", "He's a foster kid placed in the countryside", "He's Hec's biological son", "He's hiding from the police"],
+        correct: 1,
+        good: "Right! Ricky is a city kid in foster care, sent to live on Bella and Hec's remote farm.",
+        bad: "Ricky is a foster kid — child welfare places him with Bella and Hec."
+      },
+      {
+        prompt: "What happens to Bella early in the film that changes everything?",
+        options: ["She moves to the city", "She adopts another child", "She dies suddenly", "She sends Ricky back to child welfare"],
+        correct: 2,
+        good: "Correct — Bella's sudden death is what sends Ricky (and then Hec) into the bush.",
+        bad: "Bella dies suddenly, and that's what starts Ricky and Hec's journey into the bush."
+      },
+      {
+        prompt: "Why does the whole country start hunting for Ricky and Hec?",
+        options: ["They robbed a bank", "People wrongly think Hec kidnapped Ricky", "They're famous hunters on TV", "They won a reality show"],
+        correct: 1,
+        good: "Yes! A huge manhunt begins because the authorities wrongly assume Hec is dangerous.",
+        bad: "The nationwide manhunt starts because people wrongly believe Hec has kidnapped Ricky."
+      },
+      {
+        prompt: "What does Ricky proudly call his own outlaw style throughout the film?",
+        options: ["Skux life", "Wild life", "Bush life", "Free life"],
+        correct: 0,
+        good: "Correct! Ricky declares he's living the \"Skux Life\" more than once.",
+        bad: "It's \"Skux Life\" — Ricky's catchphrase for his tough, cool image."
+      }
+    ]
+  },
+  {
+    title: "Camp 2 · Hec's Bush Survival Rules",
+    subtitle: "Modal Verbs",
+    flavor: "Hec doesn't hand out compliments, but he does hand out survival rules. Choose the modal verb that fits each one.",
+    icon: "🔥",
+    questions: [
+      {
+        prompt: '"You ____ learn to start a fire without matches out here," says Hec.',
+        options: ["must", "might", "would", "could have"],
+        correct: 0,
+        good: "Yes! 'Must' shows a strong necessity — it's essential for survival.",
+        bad: "'Must' fits best — Hec is stating something absolutely necessary."
+      },
+      {
+        prompt: "Ricky ____ run faster than Hec expects, especially when he's escaping trouble.",
+        options: ["must", "can", "should", "would"],
+        correct: 1,
+        good: "Correct! 'Can' expresses Ricky's ability.",
+        bad: "'Can' is the modal for ability — Ricky is capable of running fast."
+      },
+      {
+        prompt: "Hec believes Ricky ____ stop causing trouble and start listening.",
+        options: ["can", "must", "should", "might"],
+        correct: 2,
+        good: "Right! 'Should' expresses Hec's advice/opinion about what's best.",
+        bad: "'Should' fits — it's Hec's opinion about what Ricky ought to do."
+      },
+      {
+        prompt: "The rangers ____ have spotted their campfire smoke from the road.",
+        options: ["might", "must not", "shouldn't", "can't"],
+        correct: 0,
+        good: "Correct! 'Might have' expresses a possibility about the past.",
+        bad: "'Might have spotted' shows a possibility — we're not sure, just guessing."
+      }
+    ]
+  },
+  {
+    title: "Camp 3 · Ricky's Bush Diary",
+    subtitle: "Present Perfect Simple & Continuous",
+    flavor: "Ricky keeps scribbling haiku and diary notes as they trek through the bush. Pick the correct present perfect form.",
+    icon: "📓",
+    questions: [
+      {
+        prompt: "Ricky and Hec ____ in the bush for weeks, and they're both exhausted.",
+        options: ["have hidden", "have been hiding", "hid", "hide"],
+        correct: 1,
+        good: "Yes! Present perfect continuous shows an ongoing action, emphasizing duration.",
+        bad: "'Have been hiding' is best — it's been going on for weeks and is still true now."
+      },
+      {
+        prompt: "Before this journey, Ricky ____ how to survive in the wild.",
+        options: ["has never learned", "has never been learning", "never learned", "was never learning"],
+        correct: 0,
+        good: "Correct! Present perfect simple + 'never' shows a completed life experience up to now.",
+        bad: "'Has never learned' is right — it's a completed experience connected to now."
+      },
+      {
+        prompt: "The dogs ____ around their camp all night.",
+        options: ["have barked", "have been barking", "barked", "bark"],
+        correct: 1,
+        good: "Right! The repeated, ongoing barking calls for present perfect continuous.",
+        bad: "'Have been barking' fits — it emphasizes the repeated action through the night."
+      },
+      {
+        prompt: "Hec ____ a real bond with Ricky since they got lost together.",
+        options: ["has built", "has been building", "was building", "builds"],
+        correct: 0,
+        good: "Correct! This is a completed achievement with a present result — present perfect simple.",
+        bad: "'Has built' is right — it's a completed accomplishment, not something still in progress."
+      }
+    ]
+  },
+  {
+    title: "Camp 4 · Psycho Sam's Riddles",
+    subtitle: "Figurative Language",
+    flavor: "Psycho Sam speaks in strange, vivid riddles from his hut in the bush. Name the figurative device hiding in each line.",
+    icon: "🎯",
+    questions: [
+      {
+        prompt: '"The bush was as quiet as a held breath." — What device is this?',
+        options: ["Simile", "Metaphor", "Personification", "Hyperbole"],
+        correct: 0,
+        good: "Yes! It compares the bush's quiet to a held breath using 'as' — that's a simile.",
+        bad: "It's a simile — it uses 'as' to compare the silence to a held breath."
+      },
+      {
+        prompt: '"Hec\'s silence was a locked door."',
+        options: ["Simile", "Metaphor", "Alliteration", "Onomatopoeia"],
+        correct: 1,
+        good: "Correct! Hec's silence IS described as a locked door — a metaphor.",
+        bad: "It's a metaphor — his silence is directly called 'a locked door,' without 'like' or 'as'."
+      },
+      {
+        prompt: '"The wind whispered secrets through the ferns."',
+        options: ["Simile", "Hyperbole", "Personification", "Compound noun"],
+        correct: 2,
+        good: "Right! Giving the wind the human action of 'whispering' is personification.",
+        bad: "It's personification — the wind is given a human ability, whispering."
+      },
+      {
+        prompt: '"Boots squelching, sticks snapping, they stumbled through the swamp."',
+        options: ["Alliteration", "Metaphor", "Simile", "Hyperbole"],
+        correct: 0,
+        good: "Yes! Notice the repeated 's' sounds across the words — that's alliteration.",
+        bad: "It's alliteration — listen for the repeated 's' sounds."
+      },
+      {
+        prompt: '"Ricky had walked a million miles by the time they found the hut."',
+        options: ["Personification", "Simile", "Hyperbole", "Alliteration"],
+        correct: 2,
+        good: "Correct! 'A million miles' is a huge exaggeration — hyperbole.",
+        bad: "It's hyperbole — a wild exaggeration used for effect."
+      }
+    ]
+  },
+  {
+    title: "Camp 5 · Kahu's Trail Map",
+    subtitle: "Compound Nouns",
+    flavor: "Kahu left a trail map written in compound nouns to help you find your way back to the farm. Fill each blank correctly.",
+    icon: "🗺️",
+    questions: [
+      {
+        prompt: "Every night, Hec and Ricky warmed up by the ____.",
+        options: ["campfire", "backpack", "treetop", "farmland"],
+        correct: 0,
+        good: "Yes! camp + fire = campfire.",
+        bad: "It's 'campfire' — camp + fire."
+      },
+      {
+        prompt: "Ricky packed snacks and his diary into his ____.",
+        options: ["campfire", "backpack", "gunshot", "mountainside"],
+        correct: 1,
+        good: "Correct! back + pack = backpack.",
+        bad: "It's 'backpack' — back + pack."
+      },
+      {
+        prompt: "From the ____, they could see the whole valley below.",
+        options: ["backpack", "campfire", "mountainside", "farmland"],
+        correct: 2,
+        good: "Right! mountain + side = mountainside.",
+        bad: "It's 'mountainside' — mountain + side."
+      },
+      {
+        prompt: "A sudden ____ echoed through the bush, and birds scattered.",
+        options: ["gunshot", "farmland", "treetop", "campfire"],
+        correct: 0,
+        good: "Yes! gun + shot = gunshot.",
+        bad: "It's 'gunshot' — gun + shot."
+      },
+      {
+        prompt: "Bella and Hec's ____ was at the edge of the forest.",
+        options: ["treetop", "farmland", "backpack", "mountainside"],
+        correct: 1,
+        good: "Correct! farm + land = farmland.",
+        bad: "It's 'farmland' — farm + land."
+      }
+    ]
+  }
+];
+
+/* ---------------- STATE ---------------- */
+let current = 0;
+let totalStars = 0;
+let totalQuestions = stations.reduce((s, st) => s + st.questions.length, 0);
+
+const stage = document.getElementById('stage');
+const progressEl = document.getElementById('progress');
+
+function renderProgress(){
+  progressEl.innerHTML = '';
+  stations.forEach((st, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : (i < current ? ' done' : ''));
+    d.textContent = i < current ? '✓' : st.icon;
+    progressEl.appendChild(d);
+  });
+}
+
+function renderIntro(){
+  stage.innerHTML = `
+    <div class="card">
+      <h2>🐐 A Farm, A Loss, A Journey Into the Bush</h2>
+      <p>You've just arrived at Bella and Hec's farm on the edge of the New Zealand bush. To make it through the weekend, you must cross <strong>5 camps</strong>, each guarding a piece of survival knowledge: the story of <em>Hunt for the Wilderpeople</em>, modal verbs, present perfect tenses, figurative language, and compound nouns.</p>
+      <p>Answer each challenge to earn a star ⭐. Ready to go bush?</p>
+      <button class="start-btn" onclick="startQuest()">Start the Manhunt 🐾</button>
+    </div>
+  `;
+}
+
+function startQuest(){
+  current = 0;
+  totalStars = 0;
+  renderProgress();
+  renderStation();
+}
+
+function renderStation(){
+  renderProgress();
+  const st = stations[current];
+  let qHtml = '';
+  st.questions.forEach((q, qi) => {
+    const opts = q.options.map((opt, oi) =>
+      `<button class="opt-btn" onclick="answer(${qi}, ${oi}, this)">${opt}</button>`
+    ).join('');
+    qHtml += `
+      <div class="question" id="q-${qi}">
+        <p class="prompt">${qi + 1}. ${q.prompt}</p>
+        <div class="options">${opts}</div>
+        <div class="feedback" id="fb-${qi}"></div>
+      </div>
+    `;
+  });
+
+  stage.innerHTML = `
+    <div class="card">
+      <span class="score-pill">⭐ ${totalStars}/${totalQuestions}</span>
+      <h2>${st.icon} ${st.title}</h2>
+      <p style="margin-top:-8px;color:#666;font-weight:bold;">${st.subtitle}</p>
+      <div class="flavor">${st.flavor}</div>
+      ${qHtml}
+      <button class="next-btn hidden" id="next-btn" onclick="nextStation()">
+        ${current === stations.length - 1 ? "Make It Back to the Farm! 🏆" : "Trek to the Next Camp →"}
+      </button>
+    </div>
+  `;
+  window.__answered = new Array(st.questions.length).fill(false);
+}
+
+function answer(qi, oi, btnEl){
+  const st = stations[current];
+  const q = st.questions[qi];
+  if (window.__answered[qi]) return;
+  window.__answered[qi] = true;
+
+  const container = document.getElementById('q-' + qi);
+  const buttons = container.querySelectorAll('.opt-btn');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('reveal');
+  });
+
+  const fb = document.getElementById('fb-' + qi);
+  if (oi === q.correct) {
+    totalStars++;
+    fb.textContent = '⭐ ' + q.good;
+    fb.className = 'feedback good';
+  } else {
+    btnEl.classList.add('wrong');
+    fb.textContent = '💭 ' + q.bad;
+    fb.className = 'feedback bad';
+  }
+
+  document.querySelector('.score-pill').textContent = `⭐ ${totalStars}/${totalQuestions}`;
+
+  if (window.__answered.every(a => a)) {
+    document.getElementById('next-btn').classList.remove('hidden');
+  }
+}
+
+function nextStation(){
+  current++;
+  if (current >= stations.length) {
+    renderFinal();
+  } else {
+    renderStation();
+  }
+}
+
+function renderFinal(){
+  progressEl.querySelectorAll('.dot').forEach(d => d.classList.add('done'));
+  let tier;
+  const pct = totalStars / totalQuestions;
+  if (pct === 1) { tier = "Perfect trek! Even Hec would call that majestic. 🏹"; }
+  else if (pct >= 0.8) { tier = "Fantastic bushcraft! Just a few trails to re-walk. 🌲"; }
+  else if (pct >= 0.6) { tier = "Good escape! Review the tricky camps before Monday. 🗺️"; }
+  else { tier = "You made it back to the farm — now go back and study the trail again! 📓"; }
+
+  stage.innerHTML = `
+    <div class="card final">
+      <h2>🏆 You Made It Out of the Bush!</h2>
+      <div class="treasure">🐗🔥🐐</div>
+      <div class="stat-line">⭐ ${totalStars} / ${totalQuestions} stars earned</div>
+      <p>${tier}</p>
+      <p>Great job revising <em>Hunt for the Wilderpeople</em>, modal verbs, present perfect tenses, figurative language, and compound nouns this weekend! SKUX LIFE.</p>
+      <button class="restart-btn" onclick="startQuest()">Trek Again 🔁</button>
+    </div>
+  `;
+  launchConfetti();
+}
+
+/* ---------------- Confetti (vanilla canvas) ---------------- */
+function launchConfetti(){
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#e0a634', '#4a9d6f', '#d9622b', '#4caf7d', '#ffffff'];
+  const pieces = Array.from({length: 140}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height,
+    r: 4 + Math.random() * 5,
+    c: colors[Math.floor(Math.random() * colors.length)],
+    vy: 2 + Math.random() * 3,
+    vx: -1.5 + Math.random() * 3,
+    rot: Math.random() * 360,
+    vr: -6 + Math.random() * 12
+  }));
+  let frames = 0;
+  function tick(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r * 0.6);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 260) {
+      requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  tick();
+}
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('confetti');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+/* ---------------- Init ---------------- */
+renderProgress();
+renderIntro();
+</script>
+</body>
+</html>
