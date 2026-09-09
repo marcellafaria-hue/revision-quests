@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Three Wishes: The Genie's Trial 🧞</title>
+<style>
+  :root{
+    --deep: #0d2b3e;
+    --deep2: #145374;
+    --gold: #ffcf56;
+    --gold-dark: #e0a92e;
+    --teal: #2dd4bf;
+    --coral: #ff7a59;
+    --green: #4caf7d;
+    --red: #e8555f;
+    --card: #fffaf0;
+    --ink: #1c2b33;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: radial-gradient(circle at 20% 10%, #1f5a72 0%, var(--deep) 45%, #061620 100%);
+    color: var(--ink);
+    overflow-x:hidden;
+  }
+  .stars{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:720px; margin:0 auto; padding:24px 16px 60px;
+  }
+  header.top{
+    text-align:center; color:var(--gold); margin-bottom:14px;
+  }
+  header.top h1{
+    font-size:1.5rem; margin:6px 0 2px; letter-spacing:0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  header.top p{ color:#cdeef0; margin:0; font-size:0.95rem; }
+
+  .progress{
+    display:flex; justify-content:center; gap:10px; margin: 18px 0 22px;
+    flex-wrap: wrap;
+  }
+  .progress .dot{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#123c4f; color:#7fb8c4; font-weight:bold; font-size:0.85rem;
+    border:2px solid #1f5a72; transition: all .3s ease;
+  }
+  .progress .dot.active{ background:var(--gold); color:var(--deep); border-color:var(--gold); transform:scale(1.15); }
+  .progress .dot.done{ background:var(--green); color:white; border-color:var(--green); }
+
+  .card{
+    background: var(--card);
+    border-radius:18px;
+    padding:22px 22px 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    animation: floatIn .5s ease;
+  }
+  @keyframes floatIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  .card h2{
+    margin-top:0; font-size:1.3rem; color:var(--deep2);
+    border-bottom: 3px dashed var(--gold-dark);
+    padding-bottom:10px;
+  }
+  .flavor{
+    background:#eaf7f6; border-left:4px solid var(--teal);
+    padding:10px 14px; border-radius:8px; font-style:italic; color:#333;
+    margin-bottom:18px; font-size:0.97rem;
+  }
+
+  .question{ margin-bottom: 22px; }
+  .question p.prompt{ font-weight:bold; margin:0 0 10px; line-height:1.4; }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt-btn{
+    text-align:left;
+    padding:10px 14px; border-radius:10px; border:2px solid #d8ece9;
+    background:#f6fbfa; cursor:pointer; font-family:inherit; font-size:0.97rem;
+    color:var(--ink); transition: all .15s ease;
+  }
+  .opt-btn:hover:not(:disabled){ border-color: var(--teal); background:#e6fbf8; }
+  .opt-btn:disabled{ cursor:default; }
+  .opt-btn.wrong{ background:#fdeaea; border-color:var(--red); color:#8a1f27; }
+  .opt-btn.reveal{ background:#e2f7ea; border-color:var(--green); color:#1c5c3a; font-weight:bold; }
+
+  .feedback{ margin-top:6px; font-size:0.9rem; min-height:1.2em; }
+  .feedback.good{ color:#1c5c3a; }
+  .feedback.bad{ color:#8a1f27; }
+
+  .next-btn, .start-btn, .restart-btn{
+    display:block; margin:18px auto 0; padding:12px 28px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border:none; border-radius:30px; font-size:1.05rem; font-weight:bold;
+    color:var(--deep); cursor:pointer; box-shadow: 0 8px 18px rgba(224,169,46,0.4);
+    font-family:inherit;
+  }
+  .next-btn:hover, .start-btn:hover, .restart-btn:hover{ transform: translateY(-2px); }
+  .hidden{ display:none !important; }
+
+  .score-pill{
+    position:sticky; top:8px; float:right; background:var(--deep2); color:var(--gold);
+    padding:6px 14px; border-radius:20px; font-weight:bold; font-size:0.9rem;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .final h2{ text-align:center; }
+  .treasure{ font-size:4rem; text-align:center; margin:10px 0; }
+  .final p{ text-align:center; font-size:1.05rem; }
+  .stat-line{ text-align:center; font-size:1.4rem; font-weight:bold; color:var(--deep2); margin: 10px 0 4px;}
+
+  canvas#confetti{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+
+  footer.note{
+    text-align:center; color:#7fb8c4; font-size:0.8rem; margin-top:26px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+  <header class="top">
+    <div style="font-size:2.2rem;">🧞‍♂️🪔</div>
+    <h1>Three Wishes: The Genie's Trial</h1>
+    <p>A weekend revision quest through Conditionals & Wishes</p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="stage"></div>
+
+  <footer class="note">Made for our 7th grade revision — rub the lamp and see you Monday! 🪔</footer>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const stations = [
+  {
+    title: "Trial 1 · Real or Impossible?",
+    subtitle: "Warm-Up: First vs Second Conditional",
+    flavor: "You've just found a dusty old lamp buried in the sand. Before you dare to rub it, prove you can tell the real from the impossible...",
+    icon: "🔍",
+    questions: [
+      {
+        prompt: '"If you find the lamp, I will grant you a wish." Which conditional is this?',
+        options: ["Second conditional", "Wish + past simple", "First conditional", "Zero conditional"],
+        correct: 2,
+        good: "Yes! A real, possible situation — that's the first conditional.",
+        bad: "It's the first conditional — a realistic possibility."
+      },
+      {
+        prompt: '"If I found a magic lamp, I would wish for unlimited wishes." Which is this?',
+        options: ["First conditional", "Second conditional", "Wish + past simple", "Zero conditional"],
+        correct: 1,
+        good: "Correct! An imaginary situation — that's the second conditional.",
+        bad: "It's the second conditional — an imaginary, hypothetical situation."
+      },
+      {
+        prompt: "Which sentence expresses a WISH about the present?",
+        options: ["If I have a flying carpet, I will fly.", "I will wish for a carpet.", "I wished for a carpet yesterday.", "I wish I had a flying carpet."],
+        correct: 3,
+        good: "Right! 'Wish + past simple' expresses a desire about the present.",
+        bad: "It's 'I wish I had a flying carpet' — wish + past simple for a present desire."
+      },
+      {
+        prompt: "What tense usually follows 'wish' when talking about the present?",
+        options: ["Past simple", "Present simple", "Future simple", "Present perfect"],
+        correct: 0,
+        good: "Correct! Just like the second conditional, 'wish' uses the past simple for present desires.",
+        bad: "It's the past simple — 'I wish I had...', 'I wish I knew...'"
+      }
+    ]
+  },
+  {
+    title: "Trial 2 · Real Genie Deals",
+    subtitle: "First Conditional",
+    flavor: "The genie only makes real, fair deals. Complete each rule with the correct first conditional form.",
+    icon: "🪔",
+    questions: [
+      {
+        prompt: "If you ____ the lamp three times, the genie will appear.",
+        options: ["rubbed", "will rub", "rub", "would rub"],
+        correct: 2,
+        good: "Yes! Present simple after 'if' in the first conditional.",
+        bad: "It's 'rub' — present simple after 'if' in the first conditional."
+      },
+      {
+        prompt: "The genie will grant your wish if you ____ polite.",
+        options: ["were", "will be", "would be", "are"],
+        correct: 3,
+        good: "Correct! 'Are' — present simple, even with the clauses reversed.",
+        bad: "It's 'are' — present simple after 'if', no matter the word order."
+      },
+      {
+        prompt: "If I ____ the riddle correctly, I will earn an extra wish.",
+        options: ["answered", "answer", "will answer", "would answer"],
+        correct: 1,
+        good: "Right! 'Answer' — present simple in the if-clause.",
+        bad: "It's 'answer' — present simple after 'if' in a real, possible situation."
+      },
+      {
+        prompt: "You ____ lose your wish if you ask for more wishes.",
+        options: ["will", "would", "are", "were"],
+        correct: 0,
+        good: "Correct! 'Will lose' — a real consequence.",
+        bad: "It's 'will' — the result clause of a first conditional sentence."
+      }
+    ]
+  },
+  {
+    title: "Trial 3 · Impossible Dreams",
+    subtitle: "Second Conditional",
+    flavor: "Now imagine the impossible — a thousand wishes, a genie of your own. Dream in the second conditional.",
+    icon: "✨",
+    questions: [
+      {
+        prompt: "If I ____ three wishes, I would ask for endless treasure.",
+        options: ["have", "will have", "had", "has"],
+        correct: 2,
+        good: "Yes! Past simple 'had' after 'if' in the second conditional.",
+        bad: "It's 'had' — past simple after 'if', for an imaginary situation."
+      },
+      {
+        prompt: "What would you wish for if you ____ a genie?",
+        options: ["meet", "will meet", "would meet", "met"],
+        correct: 3,
+        good: "Correct! 'Met' — past simple in the second conditional question.",
+        bad: "It's 'met' — past simple after 'if' in a hypothetical question."
+      },
+      {
+        prompt: "If the genie ____ real, everyone would want a lamp.",
+        options: ["is", "were", "will be", "has been"],
+        correct: 1,
+        good: "Right! 'If I/he/she/it were' is the classic second conditional form.",
+        bad: "It's 'were' — the classic second conditional form of 'be'."
+      },
+      {
+        prompt: "She would travel through time if she ____ a magic carpet.",
+        options: ["had", "has", "will have", "have"],
+        correct: 0,
+        good: "Correct! 'Had' — past simple after 'if' in the second conditional.",
+        bad: "It's 'had' — past simple after 'if' for this imaginary situation."
+      }
+    ]
+  },
+  {
+    title: "Trial 4 · The Genie's Grammar Book",
+    subtitle: "Wish + Past Simple",
+    flavor: "Every wish has a grammar rule behind it. Master 'wish + past simple' to speak like a true genie scholar.",
+    icon: "📜",
+    questions: [
+      {
+        prompt: "I ____ I had a genie of my own!",
+        options: ["will wish", "wished", "wish", "am wishing"],
+        correct: 2,
+        good: "Yes! 'Wish' in the present, followed by the past simple clause.",
+        bad: "It's 'wish' — present tense 'wish' + past simple for the present desire."
+      },
+      {
+        prompt: "She wishes she ____ how to fly.",
+        options: ["knows", "will know", "has known", "knew"],
+        correct: 3,
+        good: "Correct! 'Knew' — past simple after 'wishes'.",
+        bad: "It's 'knew' — past simple after 'wish/wishes' for a present desire."
+      },
+      {
+        prompt: "I wish I ____ more free wishes.",
+        options: ["have", "had", "will have", "having"],
+        correct: 1,
+        good: "Right! 'Had' — past simple after 'wish'.",
+        bad: "It's 'had' — past simple after 'wish' for something you don't have now."
+      },
+      {
+        prompt: "They wish they ____ closer to the treasure cave.",
+        options: ["lived", "live", "will live", "have lived"],
+        correct: 0,
+        good: "Correct! 'Lived' — past simple after 'wish' for a present situation they'd like to change.",
+        bad: "It's 'lived' — past simple after 'wish' for a present situation."
+      }
+    ]
+  },
+  {
+    title: "Trial 5 · Boss Battle",
+    subtitle: "Mixed Wishes & Conditionals",
+    flavor: "The final test before your wish is granted! Spot the mistakes and prove you've truly mastered the genie's grammar.",
+    icon: "🏆",
+    questions: [
+      {
+        prompt: "Find the mistake: \"I wish I have a magic lamp.\"",
+        options: ["Should be: I wish I will have a magic lamp.", "Should be: I wish I would have a magic lamp.", "Should be: I wish I had a magic lamp.", "No mistake"],
+        correct: 2,
+        good: "Yes! 'Wish' needs the past simple, not the present simple.",
+        bad: "The fix is 'I wish I had a magic lamp' — past simple after 'wish'."
+      },
+      {
+        prompt: "Find the mistake in this REAL, POSSIBLE plan: \"If I will find the map, I would follow it today.\"",
+        options: ["Should be: If I found the map, I would follow it today.", "Should be: If I will find the map, I will follow it today.", "No mistake", "Should be: If I find the map, I will follow it today."],
+        correct: 3,
+        good: "Correct! Since it's a real plan, the if-clause uses present simple and the result uses 'will'.",
+        bad: "Since this is a real, possible plan, it should be: If I find the map, I will follow it today."
+      },
+      {
+        prompt: "Which is the correct way to express an imaginary present wish?",
+        options: ["I wish I can speak with genies.", "I wish I could speak with genies.", "I wish I will speak with genies.", "I wish I would speak with genies."],
+        correct: 1,
+        good: "Right! 'Could' is the past form of 'can', used after 'wish' for hypothetical ability.",
+        bad: "It's 'I wish I could speak with genies' — 'could' is the past modal form used after 'wish'."
+      },
+      {
+        prompt: "Choose the best response to: \"What do you wish you had?\"",
+        options: ["I wish I had more free time.", "I wish I have more free time.", "I will wish I had more time.", "I wished I have more time."],
+        correct: 0,
+        good: "Correct! 'I wish I had...' — the classic wish + past simple structure.",
+        bad: "It's 'I wish I had more free time' — wish + past simple."
+      }
+    ]
+  }
+];
+
+/* ---------------- STATE ---------------- */
+let current = 0;
+let totalStars = 0;
+let totalQuestions = stations.reduce((s, st) => s + st.questions.length, 0);
+
+const stage = document.getElementById('stage');
+const progressEl = document.getElementById('progress');
+
+function renderProgress(){
+  progressEl.innerHTML = '';
+  stations.forEach((st, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : (i < current ? ' done' : ''));
+    d.textContent = i < current ? '✓' : st.icon;
+    progressEl.appendChild(d);
+  });
+}
+
+function renderIntro(){
+  stage.innerHTML = `
+    <div class="card">
+      <h2>🪔 A Lamp, A Genie, Three Wishes</h2>
+      <p>You've stumbled upon an ancient lamp half-buried in the sand. Before the genie grants your wishes, you must pass <strong>5 trials</strong>: telling real from imaginary situations, mastering the first and second conditionals, and learning the magic words of <em>wish + past simple</em>.</p>
+      <p>Answer each challenge to earn a star ⭐. Ready to make your wishes come true?</p>
+      <button class="start-btn" onclick="startQuest()">Rub the Lamp 🪔</button>
+    </div>
+  `;
+}
+
+function startQuest(){
+  current = 0;
+  totalStars = 0;
+  renderProgress();
+  renderStation();
+}
+
+function renderStation(){
+  renderProgress();
+  const st = stations[current];
+  let qHtml = '';
+  st.questions.forEach((q, qi) => {
+    const opts = q.options.map((opt, oi) =>
+      `<button class="opt-btn" onclick="answer(${qi}, ${oi}, this)">${opt}</button>`
+    ).join('');
+    qHtml += `
+      <div class="question" id="q-${qi}">
+        <p class="prompt">${qi + 1}. ${q.prompt}</p>
+        <div class="options">${opts}</div>
+        <div class="feedback" id="fb-${qi}"></div>
+      </div>
+    `;
+  });
+
+  stage.innerHTML = `
+    <div class="card">
+      <span class="score-pill">⭐ ${totalStars}/${totalQuestions}</span>
+      <h2>${st.icon} ${st.title}</h2>
+      <p style="margin-top:-8px;color:#666;font-weight:bold;">${st.subtitle}</p>
+      <div class="flavor">${st.flavor}</div>
+      ${qHtml}
+      <button class="next-btn hidden" id="next-btn" onclick="nextStation()">
+        ${current === stations.length - 1 ? "Make Your Wish! 🏆" : "Continue the Quest →"}
+      </button>
+    </div>
+  `;
+  window.__answered = new Array(st.questions.length).fill(false);
+}
+
+function answer(qi, oi, btnEl){
+  const st = stations[current];
+  const q = st.questions[qi];
+  if (window.__answered[qi]) return;
+  window.__answered[qi] = true;
+
+  const container = document.getElementById('q-' + qi);
+  const buttons = container.querySelectorAll('.opt-btn');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('reveal');
+  });
+
+  const fb = document.getElementById('fb-' + qi);
+  if (oi === q.correct) {
+    totalStars++;
+    fb.textContent = '⭐ ' + q.good;
+    fb.className = 'feedback good';
+  } else {
+    btnEl.classList.add('wrong');
+    fb.textContent = '💭 ' + q.bad;
+    fb.className = 'feedback bad';
+  }
+
+  document.querySelector('.score-pill').textContent = `⭐ ${totalStars}/${totalQuestions}`;
+
+  if (window.__answered.every(a => a)) {
+    document.getElementById('next-btn').classList.remove('hidden');
+  }
+}
+
+function nextStation(){
+  current++;
+  if (current >= stations.length) {
+    renderFinal();
+  } else {
+    renderStation();
+  }
+}
+
+function renderFinal(){
+  progressEl.querySelectorAll('.dot').forEach(d => d.classList.add('done'));
+  let tier;
+  const pct = totalStars / totalQuestions;
+  if (pct === 1) { tier = "Perfect magic! The genie grants you unlimited wishes! 🧞"; }
+  else if (pct >= 0.8) { tier = "Fantastic wishing, apprentice! Just a spell or two to polish. ✨"; }
+  else if (pct >= 0.6) { tier = "Good work! Review the tricky trials before Monday. 📜"; }
+  else { tier = "The lamp is yours — now go back and study the grammar book again! 📖"; }
+
+  stage.innerHTML = `
+    <div class="card final">
+      <h2>🏆 Your Wish Is Granted!</h2>
+      <div class="treasure">🧞‍♂️🪔✨</div>
+      <div class="stat-line">⭐ ${totalStars} / ${totalQuestions} stars earned</div>
+      <p>${tier}</p>
+      <p>Great job revising the first and second conditionals, plus wish + past simple, this weekend!</p>
+      <button class="restart-btn" onclick="startQuest()">Make Another Wish 🔁</button>
+    </div>
+  `;
+  launchConfetti();
+}
+
+/* ---------------- Background stars ---------------- */
+(function drawStars(){
+  const c = document.createElement('div');
+  c.className = 'stars';
+  document.body.prepend(c);
+})();
+
+/* ---------------- Confetti (vanilla canvas) ---------------- */
+function launchConfetti(){
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#ffcf56', '#2dd4bf', '#ff7a59', '#4caf7d', '#ffffff'];
+  const pieces = Array.from({length: 140}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height,
+    r: 4 + Math.random() * 5,
+    c: colors[Math.floor(Math.random() * colors.length)],
+    vy: 2 + Math.random() * 3,
+    vx: -1.5 + Math.random() * 3,
+    rot: Math.random() * 360,
+    vr: -6 + Math.random() * 12
+  }));
+  let frames = 0;
+  function tick(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r * 0.6);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 260) {
+      requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  tick();
+}
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('confetti');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+/* ---------------- Init ---------------- */
+renderProgress();
+renderIntro();
+</script>
+</body>
+</html>
