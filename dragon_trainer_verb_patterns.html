@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dragon Trainer Academy 🐉</title>
+<style>
+  :root{
+    --deep: #2b0f0f;
+    --deep2: #4a1c1c;
+    --gold: #ffb347;
+    --gold-dark: #e08e2b;
+    --teal: #3ec6a0;
+    --coral: #ff5f3c;
+    --green: #4caf7d;
+    --red: #e8555f;
+    --card: #fff8f0;
+    --ink: #2b1710;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: radial-gradient(circle at 20% 10%, #6b2412 0%, var(--deep) 45%, #150606 100%);
+    color: var(--ink);
+    overflow-x:hidden;
+  }
+  .stars{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:720px; margin:0 auto; padding:24px 16px 60px;
+  }
+  header.top{
+    text-align:center; color:var(--gold); margin-bottom:14px;
+  }
+  header.top h1{
+    font-size:1.5rem; margin:6px 0 2px; letter-spacing:0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  header.top p{ color:#ffdcc2; margin:0; font-size:0.95rem; }
+
+  .progress{
+    display:flex; justify-content:center; gap:10px; margin: 18px 0 22px;
+    flex-wrap: wrap;
+  }
+  .progress .dot{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#3a1414; color:#c98f6f; font-weight:bold; font-size:0.85rem;
+    border:2px solid #5c2418; transition: all .3s ease;
+  }
+  .progress .dot.active{ background:var(--gold); color:var(--deep); border-color:var(--gold); transform:scale(1.15); }
+  .progress .dot.done{ background:var(--green); color:white; border-color:var(--green); }
+
+  .card{
+    background: var(--card);
+    border-radius:18px;
+    padding:22px 22px 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    animation: floatIn .5s ease;
+  }
+  @keyframes floatIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  .card h2{
+    margin-top:0; font-size:1.3rem; color:var(--deep2);
+    border-bottom: 3px dashed var(--gold-dark);
+    padding-bottom:10px;
+  }
+  .flavor{
+    background:#fdeee6; border-left:4px solid var(--teal);
+    padding:10px 14px; border-radius:8px; font-style:italic; color:#333;
+    margin-bottom:18px; font-size:0.97rem;
+  }
+
+  .question{ margin-bottom: 22px; }
+  .question p.prompt{ font-weight:bold; margin:0 0 10px; line-height:1.4; }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt-btn{
+    text-align:left;
+    padding:10px 14px; border-radius:10px; border:2px solid #f0dccb;
+    background:#fdf7f1; cursor:pointer; font-family:inherit; font-size:0.97rem;
+    color:var(--ink); transition: all .15s ease;
+  }
+  .opt-btn:hover:not(:disabled){ border-color: var(--teal); background:#eafcf5; }
+  .opt-btn:disabled{ cursor:default; }
+  .opt-btn.wrong{ background:#fdeaea; border-color:var(--red); color:#8a1f27; }
+  .opt-btn.reveal{ background:#e2f7ea; border-color:var(--green); color:#1c5c3a; font-weight:bold; }
+
+  .feedback{ margin-top:6px; font-size:0.9rem; min-height:1.2em; }
+  .feedback.good{ color:#1c5c3a; }
+  .feedback.bad{ color:#8a1f27; }
+
+  .next-btn, .start-btn, .restart-btn{
+    display:block; margin:18px auto 0; padding:12px 28px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border:none; border-radius:30px; font-size:1.05rem; font-weight:bold;
+    color:var(--deep); cursor:pointer; box-shadow: 0 8px 18px rgba(224,142,43,0.4);
+    font-family:inherit;
+  }
+  .next-btn:hover, .start-btn:hover, .restart-btn:hover{ transform: translateY(-2px); }
+  .hidden{ display:none !important; }
+
+  .score-pill{
+    position:sticky; top:8px; float:right; background:var(--deep2); color:var(--gold);
+    padding:6px 14px; border-radius:20px; font-weight:bold; font-size:0.9rem;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .final h2{ text-align:center; }
+  .treasure{ font-size:4rem; text-align:center; margin:10px 0; }
+  .final p{ text-align:center; font-size:1.05rem; }
+  .stat-line{ text-align:center; font-size:1.4rem; font-weight:bold; color:var(--deep2); margin: 10px 0 4px;}
+
+  canvas#confetti{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+
+  footer.note{
+    text-align:center; color:#c98f6f; font-size:0.8rem; margin-top:26px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+  <header class="top">
+    <div style="font-size:2.2rem;">🐉🔥</div>
+    <h1>Dragon Trainer Academy</h1>
+    <p>A weekend revision quest through Verb Patterns</p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="stage"></div>
+
+  <footer class="note">Made for our 7th grade revision — train hard, and see you Monday! 🐲</footer>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const stations = [
+  {
+    title: "Trial 1 · First Day at the Academy",
+    subtitle: "Mixed Verb Patterns — Identify & Answer",
+    flavor: "Your first day training dragons is a whirlwind of chores, promises, and orders. Every sentence below hides a DIFFERENT verb pattern — read carefully before you choose!",
+    icon: "🎒",
+    questions: [
+      {
+        prompt: "The trainer made us ____ before sunrise every day.",
+        options: ["waking up", "to wake up", "woke up", "wake up"],
+        correct: 3,
+        good: "Yes! 'Make + object + infinitive without to': made us wake up.",
+        bad: "It's 'wake up' — after 'make + object' we drop the 'to'."
+      },
+      {
+        prompt: "I want ____ a dragon of my own.",
+        options: ["train", "training", "to train", "trained"],
+        correct: 2,
+        good: "Correct! 'Want' is followed by the to-infinitive: want + to + verb.",
+        bad: "It's 'to train' — 'want' is always followed by the to-infinitive."
+      },
+      {
+        prompt: "I saw the dragon ____ across the sky.",
+        options: ["soar", "to soar", "soaring", "soared"],
+        correct: 2,
+        good: "Right! 'See + object + gerund' describes an action in progress: saw it soaring.",
+        bad: "It's 'soaring' — 'see + object' + gerund shows the action in progress."
+      },
+      {
+        prompt: "I enjoy ____ with my dragon at sunset.",
+        options: ["fly", "flying", "to fly", "flew"],
+        correct: 1,
+        good: "Correct! 'Enjoy' is followed by the gerund: enjoy + verb-ing.",
+        bad: "It's 'flying' — 'enjoy' is always followed by the gerund."
+      },
+      {
+        prompt: "The trainer wants you ____ the dragon gently.",
+        options: ["to approach", "approach", "approaching", "approached"],
+        correct: 0,
+        good: "Correct! 'Want + object + to-infinitive': want you to approach.",
+        bad: "It's 'to approach' — the pattern is want + object + to-infinitive."
+      }
+    ]
+  },
+  {
+    title: "Trial 2 · Deep in Dragon Valley",
+    subtitle: "Mixed Verb Patterns — Identify & Answer",
+    flavor: "Out in the valley, anything can happen — a dragon escapes, a trainer gives an order, someone enjoys the view. Stay sharp and spot the right pattern for each verb.",
+    icon: "🏔️",
+    questions: [
+      {
+        prompt: "She avoided ____ near the dragon's tail.",
+        options: ["stand", "to stand", "stood", "standing"],
+        correct: 3,
+        good: "Yes! 'Avoid' takes the gerund: avoid + verb-ing.",
+        bad: "It's 'standing' — 'avoid' is followed by the gerund."
+      },
+      {
+        prompt: "The trainer caught the young dragon ____ from the kitchen.",
+        options: ["stealing", "steal", "to steal", "stole"],
+        correct: 0,
+        good: "Correct! 'Catch + object + gerund': caught it stealing.",
+        bad: "It's 'stealing' — the pattern is catch + object + gerund."
+      },
+      {
+        prompt: "She decided ____ the baby dragon every morning.",
+        options: ["to feed", "feed", "feeding", "fed"],
+        correct: 0,
+        good: "Right! 'Decide' takes the to-infinitive: decide + to + verb.",
+        bad: "It's 'to feed' — 'decide' is followed by the to-infinitive."
+      },
+      {
+        prompt: "I asked her ____ me care for the dragon.",
+        options: ["help", "helping", "to help", "helped"],
+        correct: 2,
+        good: "Correct! 'Ask + object + to-infinitive': ask her to help.",
+        bad: "It's 'to help' — the pattern is ask + object + to-infinitive."
+      },
+      {
+        prompt: "She let the dragon ____ freely in the valley.",
+        options: ["flying", "fly", "to fly", "flew"],
+        correct: 1,
+        good: "Correct! 'Let + object + infinitive without to': let it fly.",
+        bad: "It's 'fly' — after 'let + object' we drop the 'to'."
+      }
+    ]
+  },
+  {
+    title: "Trial 3 · The Night Watch",
+    subtitle: "Mixed Verb Patterns — Identify & Answer",
+    flavor: "Night falls over the academy, and strange things stir. Watch closely: every verb here hides a different pattern, and no two in a row are the same.",
+    icon: "🌙",
+    questions: [
+      {
+        prompt: "The headmaster told the students ____ quiet near the nests.",
+        options: ["stay", "to stay", "staying", "stayed"],
+        correct: 1,
+        good: "Yes! 'Tell + object + to-infinitive': tell them to stay.",
+        bad: "It's 'to stay' — the pattern is tell + object + to-infinitive."
+      },
+      {
+        prompt: "Can you help me ____ the dragon's wing?",
+        options: ["examining", "to examine", "examine", "examined"],
+        correct: 2,
+        good: "Correct! 'Help + object + infinitive without to': help me examine.",
+        bad: "It's 'examine' — 'help' is commonly followed by object + bare infinitive."
+      },
+      {
+        prompt: "They finished ____ the new stable before winter.",
+        options: ["building", "build", "to build", "built"],
+        correct: 0,
+        good: "Right! 'Finish' takes the gerund: finish + verb-ing.",
+        bad: "It's 'building' — 'finish' is followed by the gerund."
+      },
+      {
+        prompt: "The loud noises kept the dragons ____ all night.",
+        options: ["roar", "to roar", "roared", "roaring"],
+        correct: 3,
+        good: "Correct! 'Keep + object + gerund': kept them roaring.",
+        bad: "It's 'roaring' — the pattern is keep + object + gerund."
+      },
+      {
+        prompt: "We promised ____ the eggs safe.",
+        options: ["keep", "keeping", "kept", "to keep"],
+        correct: 3,
+        good: "Correct! 'Promise' takes the to-infinitive: promise + to + verb.",
+        bad: "It's 'to keep' — 'promise' is followed by the to-infinitive."
+      }
+    ]
+  },
+  {
+    title: "Trial 4 · The Dragon Master's Exam",
+    subtitle: "Final Mix — No Hints, No Patterns",
+    flavor: "This is it — the final exam! No hints, nothing grouped together. Prove you've truly mastered every verb pattern in Dragon Trainer Academy.",
+    icon: "🏆",
+    questions: [
+      {
+        prompt: "We noticed the dragon ____ strangely near the cave.",
+        options: ["behave", "behaving", "to behave", "behaved"],
+        correct: 1,
+        good: "Yes! 'Notice + object + gerund': noticed it behaving.",
+        bad: "It's 'behaving' — the pattern is notice + object + gerund."
+      },
+      {
+        prompt: "They don't allow beginners ____ fire-breathing dragons.",
+        options: ["ride", "riding", "rode", "to ride"],
+        correct: 3,
+        good: "Correct! 'Allow + object + to-infinitive': allow them to ride.",
+        bad: "It's 'to ride' — the pattern is allow + object + to-infinitive."
+      },
+      {
+        prompt: "The loud thunder made the dragon ____ nervously.",
+        options: ["hiss", "hissing", "to hiss", "hissed"],
+        correct: 0,
+        good: "Correct! 'Make + object + infinitive without to': made it hiss.",
+        bad: "It's 'hiss' — after 'make + object' we drop the 'to'."
+      },
+      {
+        prompt: "He refused ____ the wild dragon alone.",
+        options: ["approach", "to approach", "approaching", "approached"],
+        correct: 1,
+        good: "Correct! 'Refuse' takes the to-infinitive: refuse + to + verb.",
+        bad: "It's 'to approach' — 'refuse' is followed by the to-infinitive."
+      },
+      {
+        prompt: "He suggested ____ the dragon a new name.",
+        options: ["give", "to give", "giving", "gave"],
+        correct: 2,
+        good: "Correct! 'Suggest' takes the gerund: suggest + verb-ing.",
+        bad: "It's 'giving' — 'suggest' is followed by the gerund."
+      }
+    ]
+  }
+];
+
+/* ---------------- STATE ---------------- */
+let current = 0;
+let totalStars = 0;
+let totalQuestions = stations.reduce((s, st) => s + st.questions.length, 0);
+
+const stage = document.getElementById('stage');
+const progressEl = document.getElementById('progress');
+
+function renderProgress(){
+  progressEl.innerHTML = '';
+  stations.forEach((st, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : (i < current ? ' done' : ''));
+    d.textContent = i < current ? '✓' : st.icon;
+    progressEl.appendChild(d);
+  });
+}
+
+function renderIntro(){
+  stage.innerHTML = `
+    <div class="card">
+      <h2>🐲 Welcome, Dragon Trainer</h2>
+      <p>You've just arrived at Dragon Trainer Academy! Before you can ride your own dragon, you must pass <strong>4 trials</strong> — and in every trial, the verb patterns are <strong>mixed up on purpose</strong>. No two questions in a row use the same pattern, so you'll have to identify which one fits before you answer!</p>
+      <p style="font-weight:bold;color:var(--deep2);margin-bottom:6px;">Trainer's Notes — the 5 patterns:</p>
+      <ul style="margin:0 0 14px;padding-left:20px;line-height:1.7;font-size:0.93rem;">
+        <li><strong>verb + to-infinitive</strong> — want, decide, promise, refuse <em>(want to fly)</em></li>
+        <li><strong>verb + gerund</strong> — enjoy, avoid, finish, suggest <em>(enjoy flying)</em></li>
+        <li><strong>verb + object + to-infinitive</strong> — want, ask, tell, allow <em>(want you to fly)</em></li>
+        <li><strong>verb + object + infinitive without to</strong> — make, let, help <em>(make you fly)</em></li>
+        <li><strong>verb + object + gerund</strong> — see, catch, keep, notice <em>(see you flying)</em></li>
+      </ul>
+      <p>Answer each challenge to earn a star ⭐. Ready to begin your training?</p>
+      <button class="start-btn" onclick="startQuest()">Enter the Academy 🐉</button>
+    </div>
+  `;
+}
+
+function startQuest(){
+  current = 0;
+  totalStars = 0;
+  renderProgress();
+  renderStation();
+}
+
+function renderStation(){
+  renderProgress();
+  const st = stations[current];
+  let qHtml = '';
+  st.questions.forEach((q, qi) => {
+    const opts = q.options.map((opt, oi) =>
+      `<button class="opt-btn" onclick="answer(${qi}, ${oi}, this)">${opt}</button>`
+    ).join('');
+    qHtml += `
+      <div class="question" id="q-${qi}">
+        <p class="prompt">${qi + 1}. ${q.prompt}</p>
+        <div class="options">${opts}</div>
+        <div class="feedback" id="fb-${qi}"></div>
+      </div>
+    `;
+  });
+
+  stage.innerHTML = `
+    <div class="card">
+      <span class="score-pill">⭐ ${totalStars}/${totalQuestions}</span>
+      <h2>${st.icon} ${st.title}</h2>
+      <p style="margin-top:-8px;color:#666;font-weight:bold;">${st.subtitle}</p>
+      <div class="flavor">${st.flavor}</div>
+      ${qHtml}
+      <button class="next-btn hidden" id="next-btn" onclick="nextStation()">
+        ${current === stations.length - 1 ? "Earn Your Dragon! 🏆" : "Continue Training →"}
+      </button>
+    </div>
+  `;
+  window.__answered = new Array(st.questions.length).fill(false);
+}
+
+function answer(qi, oi, btnEl){
+  const st = stations[current];
+  const q = st.questions[qi];
+  if (window.__answered[qi]) return;
+  window.__answered[qi] = true;
+
+  const container = document.getElementById('q-' + qi);
+  const buttons = container.querySelectorAll('.opt-btn');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('reveal');
+  });
+
+  const fb = document.getElementById('fb-' + qi);
+  if (oi === q.correct) {
+    totalStars++;
+    fb.textContent = '⭐ ' + q.good;
+    fb.className = 'feedback good';
+  } else {
+    btnEl.classList.add('wrong');
+    fb.textContent = '💭 ' + q.bad;
+    fb.className = 'feedback bad';
+  }
+
+  document.querySelector('.score-pill').textContent = `⭐ ${totalStars}/${totalQuestions}`;
+
+  if (window.__answered.every(a => a)) {
+    document.getElementById('next-btn').classList.remove('hidden');
+  }
+}
+
+function nextStation(){
+  current++;
+  if (current >= stations.length) {
+    renderFinal();
+  } else {
+    renderStation();
+  }
+}
+
+function renderFinal(){
+  progressEl.querySelectorAll('.dot').forEach(d => d.classList.add('done'));
+  let tier;
+  const pct = totalStars / totalQuestions;
+  if (pct === 1) { tier = "Perfect training! You're ready to ride the fiercest dragon in the academy! 🐉"; }
+  else if (pct >= 0.8) { tier = "Fantastic work, trainer! Just a few patterns to polish. 🔥"; }
+  else if (pct >= 0.6) { tier = "Good progress! Review the tricky trials before Monday. 📯"; }
+  else { tier = "You survived the trials — now go back and study the verb patterns again! 📖"; }
+
+  stage.innerHTML = `
+    <div class="card final">
+      <h2>🏆 You've Earned Your Dragon!</h2>
+      <div class="treasure">🐉🥚🔥</div>
+      <div class="stat-line">⭐ ${totalStars} / ${totalQuestions} stars earned</div>
+      <p>${tier}</p>
+      <p>Great job revising verb + to-infinitive, verb + gerund, verb + object + to-infinitive, verb + object + infinitive without to, and verb + object + gerund this weekend!</p>
+      <button class="restart-btn" onclick="startQuest()">Train Again 🔁</button>
+    </div>
+  `;
+  launchConfetti();
+}
+
+/* ---------------- Background stars ---------------- */
+(function drawStars(){
+  const c = document.createElement('div');
+  c.className = 'stars';
+  document.body.prepend(c);
+})();
+
+/* ---------------- Confetti (vanilla canvas) ---------------- */
+function launchConfetti(){
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#ffb347', '#3ec6a0', '#ff5f3c', '#4caf7d', '#ffffff'];
+  const pieces = Array.from({length: 140}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height,
+    r: 4 + Math.random() * 5,
+    c: colors[Math.floor(Math.random() * colors.length)],
+    vy: 2 + Math.random() * 3,
+    vx: -1.5 + Math.random() * 3,
+    rot: Math.random() * 360,
+    vr: -6 + Math.random() * 12
+  }));
+  let frames = 0;
+  function tick(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r * 0.6);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 260) {
+      requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  tick();
+}
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('confetti');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+/* ---------------- Init ---------------- */
+renderProgress();
+renderIntro();
+</script>
+</body>
+</html>
