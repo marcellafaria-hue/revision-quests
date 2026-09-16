@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Address Unknown: The Letter Route ✉️</title>
+<style>
+  :root{
+    --deep: #2b2418;
+    --deep2: #4a3c28;
+    --gold: #c9a227;
+    --gold-dark: #a8841d;
+    --teal: #6b8f71;
+    --coral: #b8443c;
+    --green: #4caf7d;
+    --red: #b8443c;
+    --card: #faf6ec;
+    --ink: #2b2418;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: radial-gradient(circle at 20% 10%, #4a3c28 0%, var(--deep) 45%, #14100a 100%);
+    color: var(--ink);
+    overflow-x:hidden;
+  }
+  .stars{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:720px; margin:0 auto; padding:24px 16px 60px;
+  }
+  header.top{
+    text-align:center; color:var(--gold); margin-bottom:14px;
+  }
+  header.top h1{
+    font-size:1.45rem; margin:6px 0 2px; letter-spacing:0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  header.top p{ color:#e6d9bd; margin:0; font-size:0.95rem; }
+
+  .progress{
+    display:flex; justify-content:center; gap:10px; margin: 18px 0 22px;
+    flex-wrap: wrap;
+  }
+  .progress .dot{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#3a2f1e; color:#b5a077; font-weight:bold; font-size:0.85rem;
+    border:2px solid #5c4a2e; transition: all .3s ease;
+  }
+  .progress .dot.active{ background:var(--gold); color:var(--deep); border-color:var(--gold); transform:scale(1.15); }
+  .progress .dot.done{ background:var(--green); color:white; border-color:var(--green); }
+
+  .card{
+    background: var(--card);
+    border-radius:14px;
+    padding:22px 22px 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    animation: floatIn .5s ease;
+    border: 1px solid #e2d6b8;
+  }
+  @keyframes floatIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  .card h2{
+    margin-top:0; font-size:1.25rem; color:var(--deep2);
+    border-bottom: 3px dashed var(--gold-dark);
+    padding-bottom:10px;
+  }
+  .flavor{
+    background:#f0e8d2; border-left:4px solid var(--teal);
+    padding:10px 14px; border-radius:8px; font-style:italic; color:#3a3120;
+    margin-bottom:18px; font-size:0.97rem;
+  }
+
+  .question{ margin-bottom: 22px; }
+  .question p.prompt{ font-weight:bold; margin:0 0 10px; line-height:1.4; }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt-btn{
+    text-align:left;
+    padding:10px 14px; border-radius:10px; border:2px solid #e2d6b8;
+    background:#fbf8f0; cursor:pointer; font-family:inherit; font-size:0.95rem;
+    color:var(--ink); transition: all .15s ease;
+  }
+  .opt-btn:hover:not(:disabled){ border-color: var(--teal); background:#eef3ea; }
+  .opt-btn:disabled{ cursor:default; }
+  .opt-btn.wrong{ background:#f7e2df; border-color:var(--red); color:#7a2c24; }
+  .opt-btn.reveal{ background:#e2f0e4; border-color:var(--green); color:#1c5c3a; font-weight:bold; }
+
+  .feedback{ margin-top:6px; font-size:0.9rem; min-height:1.2em; }
+  .feedback.good{ color:#1c5c3a; }
+  .feedback.bad{ color:#7a2c24; }
+
+  .next-btn, .start-btn, .restart-btn{
+    display:block; margin:18px auto 0; padding:12px 28px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border:none; border-radius:30px; font-size:1.05rem; font-weight:bold;
+    color:var(--deep); cursor:pointer; box-shadow: 0 8px 18px rgba(168,132,29,0.4);
+    font-family:inherit;
+  }
+  .next-btn:hover, .start-btn:hover, .restart-btn:hover{ transform: translateY(-2px); }
+  .hidden{ display:none !important; }
+
+  .score-pill{
+    position:sticky; top:8px; float:right; background:var(--deep2); color:var(--gold);
+    padding:6px 14px; border-radius:20px; font-weight:bold; font-size:0.9rem;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .final h2{ text-align:center; }
+  .treasure{ font-size:3.6rem; text-align:center; margin:10px 0; }
+  .final p{ text-align:center; font-size:1.02rem; }
+  .stat-line{ text-align:center; font-size:1.4rem; font-weight:bold; color:var(--deep2); margin: 10px 0 4px;}
+
+  canvas#confetti{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+
+  footer.note{
+    text-align:center; color:#b5a077; font-size:0.8rem; margin-top:26px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+  <header class="top">
+    <div style="font-size:2.2rem;">✉️📬</div>
+    <h1>Address Unknown: The Letter Route</h1>
+    <p>A weekend revision quest through Kressmann Taylor's novella</p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="stage"></div>
+
+  <footer class="note">Made for our 7th grade discussion — read closely, and see you Monday.</footer>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const stations = [
+  {
+    title: "Stop 1 · The Letters Begin",
+    subtitle: "Setting & Characters",
+    flavor: "Two friends, an ocean apart, begin exchanging letters in 1932. Before the story turns dark, make sure you know the basics.",
+    icon: "📬",
+    questions: [
+      {
+        prompt: "What business did Martin and Max own together in San Francisco?",
+        options: ["A bookstore", "A bakery", "An art gallery", "A newspaper"],
+        correct: 2,
+        good: "Yes! The Schulse-Eisenstein Galleries — their shared art business.",
+        bad: "It's an art gallery — the Schulse-Eisenstein Galleries."
+      },
+      {
+        prompt: "What literary form is Address Unknown, written entirely as an exchange of letters?",
+        options: ["Epistolary novel", "Autobiography", "Historical essay", "Poetry collection"],
+        correct: 0,
+        good: "Correct! A story told completely through letters is an epistolary novel.",
+        bad: "It's an epistolary novel — told entirely through the characters' letters."
+      },
+      {
+        prompt: "In what year does Martin move his family back to Germany?",
+        options: ["1929", "1938", "1945", "1932"],
+        correct: 3,
+        good: "Right! The letters begin in November 1932, just as Hitler is rising to power.",
+        bad: "It's 1932 — right as the Nazi party is gaining power in Germany."
+      },
+      {
+        prompt: "What is Max's religion, which becomes central to the story's tragedy?",
+        options: ["Catholic", "Jewish", "Protestant", "Buddhist"],
+        correct: 1,
+        good: "Correct! Max is Jewish, which puts him — and everyone he loves — at terrible risk.",
+        bad: "Max is Jewish — a fact that becomes central to the story's tragedy."
+      }
+    ]
+  },
+  {
+    title: "Stop 2 · Friendship Tested",
+    subtitle: "The Bond Between Martin & Max",
+    flavor: "The letters begin warmly, full of jokes and business talk. Watch how quickly that changes.",
+    icon: "🤝",
+    questions: [
+      {
+        prompt: "At the beginning of the novel, how would you best describe Martin and Max's friendship?",
+        options: ["Distant and formal", "Close and warm, almost like brothers", "Competitive and jealous", "They had just met"],
+        correct: 1,
+        good: "Yes! They start as true, close friends and equal business partners.",
+        bad: "They begin as close, warm friends — almost like brothers."
+      },
+      {
+        prompt: "As Hitler rises to power, how do Martin's letters gradually change?",
+        options: ["They become funnier and more casual", "They stop mentioning politics entirely", "They get shorter but stay just as warm", "They grow cold and filled with Nazi rhetoric"],
+        correct: 3,
+        good: "Correct! Martin's letters grow colder and increasingly filled with Nazi party language.",
+        bad: "They grow cold and filled with Nazi rhetoric as Martin is swept up in the movement."
+      },
+      {
+        prompt: "What does Martin eventually ask Max to do, fearing for his own safety under the Nazi regime?",
+        options: ["Stop writing to him", "Move to Germany too", "Send him money", "Visit him in person"],
+        correct: 0,
+        good: "Right! Martin asks Max to stop writing, afraid that letters from a Jewish friend will endanger him.",
+        bad: "He asks Max to stop writing to him, fearing the letters will put him in danger."
+      },
+      {
+        prompt: "Who is Griselle, and how is she connected to Martin and Max?",
+        options: ["Martin's wife", "Max's business partner", "Max's sister and Martin's former lover, an actress", "A Nazi officer"],
+        correct: 2,
+        good: "Correct! Griselle is Max's sister and Martin's former love — an actress living in Europe.",
+        bad: "Griselle is Max's sister and Martin's former lover, an actress."
+      }
+    ]
+  },
+  {
+    title: "Stop 3 · Propaganda & Prejudice",
+    subtitle: "The Rise of Nazi Ideology",
+    flavor: "Martin's letters start echoing the language of the regime around him. This is where the novel shows its teeth.",
+    icon: "📢",
+    questions: [
+      {
+        prompt: "What term describes the biased, manipulative information the Nazi party spread to win support?",
+        options: ["Propaganda", "Satire", "Journalism", "Biography"],
+        correct: 0,
+        good: "Yes! Propaganda — information designed to promote a political cause, often through lies or exaggeration.",
+        bad: "It's propaganda — biased, manipulative messaging used to build support for a cause."
+      },
+      {
+        prompt: "What does Martin's growing use of phrases like 'Heil Hitler' in his letters reveal about him?",
+        options: ["He is secretly mocking the Nazis", "He is being forced to write by censors only", "His growing loyalty to Nazi ideology", "He has lost interest in politics"],
+        correct: 2,
+        good: "Correct! It shows how completely Martin has embraced Nazi ideology.",
+        bad: "It reveals his growing loyalty to Nazi ideology, not just fear of censors."
+      },
+      {
+        prompt: "What historical prejudice against Jewish people intensifies throughout the novel and drives its tragic plot?",
+        options: ["Classism", "Anti-Semitism", "Xenophobia toward Americans", "Ageism"],
+        correct: 1,
+        good: "Right! Anti-Semitism — prejudice and hostility toward Jewish people — is at the heart of this novel's tragedy.",
+        bad: "It's anti-Semitism — prejudice against Jewish people, central to the story's tragedy."
+      },
+      {
+        prompt: "Why does Martin refuse to help Griselle when she comes to him for protection?",
+        options: ["He no longer recognizes her", "He is out of town at the time", "He believes she is guilty of a crime", "He fears the Nazis will discover he helped her and punish his family"],
+        correct: 3,
+        good: "Correct! Fear for himself and his family leads Martin to turn Griselle away, with fatal results.",
+        bad: "He fears the Nazis will discover he helped her, and that fear leads to a fatal betrayal."
+      }
+    ]
+  },
+  {
+    title: "Stop 4 · Letters as Literature",
+    subtitle: "Novella, Form & Irony",
+    flavor: "This isn't just a sad story — it's carefully built. Let's look at the craft behind the letters.",
+    icon: "🖋️",
+    questions: [
+      {
+        prompt: "What is a 'novella'?",
+        options: ["A collection of poems", "A play written in verse", "A type of newspaper article", "A short novel — longer than a short story but shorter than a full novel"],
+        correct: 3,
+        good: "Yes! A novella is a short novel — that's exactly what Address Unknown is.",
+        bad: "A novella is a short novel, longer than a short story but shorter than a full-length novel."
+      },
+      {
+        prompt: "The letters are often signed 'your friend forever.' As the friendship crumbles, these sign-offs become an example of what literary device?",
+        options: ["Alliteration", "Dramatic irony", "Onomatopoeia", "Simile"],
+        correct: 1,
+        good: "Correct! Dramatic irony — we sense the growing betrayal behind words that used to mean something true.",
+        bad: "It's dramatic irony — the sign-offs feel more and more hollow as the friendship falls apart."
+      },
+      {
+        prompt: "Because the novel is told only through letters, whose private thoughts do we never directly hear?",
+        options: ["Max's", "Martin's", "A narrator's — we only see what the characters choose to write", "Griselle's"],
+        correct: 2,
+        good: "Right! There's no narrator — we only know what the characters choose to put in writing.",
+        bad: "We never hear a narrator's thoughts — only what the characters choose to write to each other."
+      },
+      {
+        prompt: "Why might the author have chosen the epistolary (letter) format to tell this story?",
+        options: ["To make the story feel authentic and show the characters changing in their own words", "Because letters were required by the publisher", "To make the book longer", "Because it was easier to translate"],
+        correct: 0,
+        good: "Correct! Letters make the change in Martin feel real and immediate, in his own words.",
+        bad: "The letter format makes the characters' change feel authentic, in their own words over time."
+      }
+    ]
+  },
+  {
+    title: "Stop 5 · The Final Letters",
+    subtitle: "Betrayal, Revenge & Legacy",
+    flavor: "The last letters in the novel hit hardest. Here's where friendship, fear, and consequence collide.",
+    icon: "✉️",
+    questions: [
+      {
+        prompt: "How does Max ultimately respond to Griselle's death?",
+        options: ["He forgives Martin completely", "He moves to Germany to confront him", "He sends Martin coded letters designed to attract Nazi censors' suspicion", "He stops writing letters forever"],
+        correct: 2,
+        good: "Yes! Max takes a chilling, quiet revenge, writing letters meant to draw the censors' attention to Martin.",
+        bad: "He sends coded letters designed to arouse the suspicion of Nazi censors reading Martin's mail."
+      },
+      {
+        prompt: "The final letters are returned stamped 'Address Unknown.' What does this most likely suggest happened to Martin?",
+        options: ["He has been taken away or has disappeared under the Nazi regime", "He simply moved to a new house", "He decided to stop reading Max's letters", "He retired and left no forwarding address"],
+        correct: 0,
+        good: "Correct! The stamp strongly implies Martin has been taken by the regime he once supported.",
+        bad: "It suggests Martin has been taken away or has disappeared — a victim of the same regime he embraced."
+      },
+      {
+        prompt: "What does the novel's ending suggest about staying silent or complicit in the face of injustice?",
+        options: ["That it is always the safest choice", "That it has no real effect on others", "That it only matters in wartime", "That silence and complicity can have devastating, even deadly, consequences"],
+        correct: 3,
+        good: "Right! The novel warns that looking away or going along with injustice has real, deadly costs.",
+        bad: "It suggests that silence and complicity can lead to devastating, even deadly, consequences."
+      },
+      {
+        prompt: "Despite years of letters signed 'your friend forever,' what does the novel ultimately reveal about Martin and Max's friendship?",
+        options: ["That true friendship always survives, no matter what", "That fear, prejudice, and politics can destroy even the closest friendships", "That they secretly stayed friends until the end", "That their friendship was never real to begin with"],
+        correct: 1,
+        good: "Correct! Even the closest friendship couldn't survive fear, prejudice, and political pressure.",
+        bad: "The novel shows that fear, prejudice, and politics can destroy even the closest of friendships."
+      }
+    ]
+  }
+];
+
+/* ---------------- STATE ---------------- */
+let current = 0;
+let totalStars = 0;
+let totalQuestions = stations.reduce((s, st) => s + st.questions.length, 0);
+
+const stage = document.getElementById('stage');
+const progressEl = document.getElementById('progress');
+
+function renderProgress(){
+  progressEl.innerHTML = '';
+  stations.forEach((st, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : (i < current ? ' done' : ''));
+    d.textContent = i < current ? '✓' : st.icon;
+    progressEl.appendChild(d);
+  });
+}
+
+function renderIntro(){
+  stage.innerHTML = `
+    <div class="card">
+      <h2>✉️ Before You Begin</h2>
+      <p>Address Unknown tells the story of two friends and business partners, Martin and Max, through the letters they send each other between 1932 and 1934 — right as the Nazi party rises to power in Germany. It's a short but powerful novella about friendship, fear, propaganda, and the real cost of silence.</p>
+      <p>Follow the letter route through <strong>5 stops</strong>, answering questions about the plot, characters, historical context, and literary craft. Answer each challenge to earn a star ⭐. Ready to begin?</p>
+      <button class="start-btn" onclick="startQuest()">Start the Letter Route ✉️</button>
+    </div>
+  `;
+}
+
+function startQuest(){
+  current = 0;
+  totalStars = 0;
+  renderProgress();
+  renderStation();
+}
+
+function renderStation(){
+  renderProgress();
+  const st = stations[current];
+  let qHtml = '';
+  st.questions.forEach((q, qi) => {
+    const opts = q.options.map((opt, oi) =>
+      `<button class="opt-btn" onclick="answer(${qi}, ${oi}, this)">${opt}</button>`
+    ).join('');
+    qHtml += `
+      <div class="question" id="q-${qi}">
+        <p class="prompt">${qi + 1}. ${q.prompt}</p>
+        <div class="options">${opts}</div>
+        <div class="feedback" id="fb-${qi}"></div>
+      </div>
+    `;
+  });
+
+  stage.innerHTML = `
+    <div class="card">
+      <span class="score-pill">⭐ ${totalStars}/${totalQuestions}</span>
+      <h2>${st.icon} ${st.title}</h2>
+      <p style="margin-top:-8px;color:#666;font-weight:bold;">${st.subtitle}</p>
+      <div class="flavor">${st.flavor}</div>
+      ${qHtml}
+      <button class="next-btn hidden" id="next-btn" onclick="nextStation()">
+        ${current === stations.length - 1 ? "Finish the Route ✉️" : "Continue the Route →"}
+      </button>
+    </div>
+  `;
+  window.__answered = new Array(st.questions.length).fill(false);
+}
+
+function answer(qi, oi, btnEl){
+  const st = stations[current];
+  const q = st.questions[qi];
+  if (window.__answered[qi]) return;
+  window.__answered[qi] = true;
+
+  const container = document.getElementById('q-' + qi);
+  const buttons = container.querySelectorAll('.opt-btn');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('reveal');
+  });
+
+  const fb = document.getElementById('fb-' + qi);
+  if (oi === q.correct) {
+    totalStars++;
+    fb.textContent = '⭐ ' + q.good;
+    fb.className = 'feedback good';
+  } else {
+    btnEl.classList.add('wrong');
+    fb.textContent = '💭 ' + q.bad;
+    fb.className = 'feedback bad';
+  }
+
+  document.querySelector('.score-pill').textContent = `⭐ ${totalStars}/${totalQuestions}`;
+
+  if (window.__answered.every(a => a)) {
+    document.getElementById('next-btn').classList.remove('hidden');
+  }
+}
+
+function nextStation(){
+  current++;
+  if (current >= stations.length) {
+    renderFinal();
+  } else {
+    renderStation();
+  }
+}
+
+function renderFinal(){
+  progressEl.querySelectorAll('.dot').forEach(d => d.classList.add('done'));
+  let tier;
+  const pct = totalStars / totalQuestions;
+  if (pct === 1) { tier = "Outstanding! You've read Address Unknown with real care and attention. 🕊️"; }
+  else if (pct >= 0.8) { tier = "Great work! You clearly understand this powerful story — just a few details to revisit. 📖"; }
+  else if (pct >= 0.6) { tier = "Good effort! Go back over your notes on the trickier questions before our discussion. 🖋️"; }
+  else { tier = "You've made a start — reread the chapters you found tricky before Monday's discussion. 📖"; }
+
+  stage.innerHTML = `
+    <div class="card final">
+      <h2>📬 You've Completed the Letter Route</h2>
+      <div class="treasure">✉️🕊️📖</div>
+      <div class="stat-line">⭐ ${totalStars} / ${totalQuestions} stars earned</div>
+      <p>${tier}</p>
+      <p>Address Unknown is a short but powerful story about friendship, prejudice, propaganda, and the danger of silence. Great job revising the plot, characters, and literary craft — see you Monday for our discussion!</p>
+      <button class="restart-btn" onclick="startQuest()">Retrace the Letters 🔁</button>
+    </div>
+  `;
+  launchConfetti();
+}
+
+/* ---------------- Background stars ---------------- */
+(function drawStars(){
+  const c = document.createElement('div');
+  c.className = 'stars';
+  document.body.prepend(c);
+})();
+
+/* ---------------- Confetti (vanilla canvas) ---------------- */
+function launchConfetti(){
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#c9a227', '#6b8f71', '#b8443c', '#4caf7d', '#faf6ec'];
+  const pieces = Array.from({length: 120}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height,
+    r: 4 + Math.random() * 5,
+    c: colors[Math.floor(Math.random() * colors.length)],
+    vy: 2 + Math.random() * 3,
+    vx: -1.5 + Math.random() * 3,
+    rot: Math.random() * 360,
+    vr: -6 + Math.random() * 12
+  }));
+  let frames = 0;
+  function tick(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r * 0.6);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 220) {
+      requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  tick();
+}
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('confetti');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+/* ---------------- Init ---------------- */
+renderProgress();
+renderIntro();
+</script>
+</body>
+</html>
