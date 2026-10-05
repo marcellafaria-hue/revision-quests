@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Mystery of Thornwood Manor 🔍</title>
+<style>
+  :root{
+    --deep: #1a1125;
+    --deep2: #2e1f3d;
+    --gold: #d4af37;
+    --gold-dark: #b8941f;
+    --teal: #4a7a6b;
+    --coral: #a13d3d;
+    --green: #4caf7d;
+    --red: #a13d3d;
+    --card: #f5efe0;
+    --ink: #2b1f1a;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    min-height:100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: radial-gradient(circle at 20% 10%, #3a2650 0%, var(--deep) 45%, #0a0610 100%);
+    color: var(--ink);
+    overflow-x:hidden;
+  }
+  .stars{
+    position:fixed; inset:0; pointer-events:none; z-index:0;
+  }
+  .wrap{
+    position:relative; z-index:1;
+    max-width:720px; margin:0 auto; padding:24px 16px 60px;
+  }
+  header.top{
+    text-align:center; color:var(--gold); margin-bottom:14px;
+  }
+  header.top h1{
+    font-size:1.45rem; margin:6px 0 2px; letter-spacing:0.5px;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+  }
+  header.top p{ color:#d9c9e8; margin:0; font-size:0.95rem; }
+
+  .progress{
+    display:flex; justify-content:center; gap:10px; margin: 18px 0 22px;
+    flex-wrap: wrap;
+  }
+  .progress .dot{
+    width:34px; height:34px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#2a1c38; color:#a98fc2; font-weight:bold; font-size:0.85rem;
+    border:2px solid #4a3360; transition: all .3s ease;
+  }
+  .progress .dot.active{ background:var(--gold); color:var(--deep); border-color:var(--gold); transform:scale(1.15); }
+  .progress .dot.done{ background:var(--green); color:white; border-color:var(--green); }
+
+  .card{
+    background: var(--card);
+    border-radius:16px;
+    padding:22px 22px 26px;
+    box-shadow: 0 18px 40px rgba(0,0,0,0.35);
+    animation: floatIn .5s ease;
+    border: 1px solid #e2d6b8;
+  }
+  @keyframes floatIn{ from{opacity:0; transform:translateY(14px);} to{opacity:1; transform:translateY(0);} }
+
+  .card h2{
+    margin-top:0; font-size:1.3rem; color:var(--deep2);
+    border-bottom: 3px dashed var(--gold-dark);
+    padding-bottom:10px;
+  }
+  .flavor{
+    background:#eae3f0; border-left:4px solid var(--teal);
+    padding:10px 14px; border-radius:8px; font-style:italic; color:#333;
+    margin-bottom:18px; font-size:0.97rem;
+  }
+
+  .question{ margin-bottom: 22px; }
+  .question p.prompt{ font-weight:bold; margin:0 0 10px; line-height:1.4; }
+  .options{ display:flex; flex-direction:column; gap:8px; }
+  .opt-btn{
+    text-align:left;
+    padding:10px 14px; border-radius:10px; border:2px solid #e2d6cb;
+    background:#faf6ee; cursor:pointer; font-family:inherit; font-size:0.95rem;
+    color:var(--ink); transition: all .15s ease;
+  }
+  .opt-btn:hover:not(:disabled){ border-color: var(--teal); background:#eaf2ee; }
+  .opt-btn:disabled{ cursor:default; }
+  .opt-btn.wrong{ background:#f6e3e3; border-color:var(--red); color:#6b2424; }
+  .opt-btn.reveal{ background:#e2f0e4; border-color:var(--green); color:#1c5c3a; font-weight:bold; }
+
+  .feedback{ margin-top:6px; font-size:0.9rem; min-height:1.2em; }
+  .feedback.good{ color:#1c5c3a; }
+  .feedback.bad{ color:#6b2424; }
+
+  .next-btn, .start-btn, .restart-btn{
+    display:block; margin:18px auto 0; padding:12px 28px;
+    background: linear-gradient(135deg, var(--gold), var(--gold-dark));
+    border:none; border-radius:30px; font-size:1.05rem; font-weight:bold;
+    color:var(--deep); cursor:pointer; box-shadow: 0 8px 18px rgba(184,148,31,0.4);
+    font-family:inherit;
+  }
+  .next-btn:hover, .start-btn:hover, .restart-btn:hover{ transform: translateY(-2px); }
+  .hidden{ display:none !important; }
+
+  .score-pill{
+    position:sticky; top:8px; float:right; background:var(--deep2); color:var(--gold);
+    padding:6px 14px; border-radius:20px; font-weight:bold; font-size:0.9rem;
+    box-shadow:0 4px 10px rgba(0,0,0,0.3);
+  }
+
+  .final h2{ text-align:center; }
+  .treasure{ font-size:3.8rem; text-align:center; margin:10px 0; }
+  .final p{ text-align:center; font-size:1.03rem; }
+  .stat-line{ text-align:center; font-size:1.4rem; font-weight:bold; color:var(--deep2); margin: 10px 0 4px;}
+
+  canvas#confetti{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+
+  footer.note{
+    text-align:center; color:#a98fc2; font-size:0.8rem; margin-top:26px;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="confetti"></canvas>
+
+<div class="wrap">
+  <header class="top">
+    <div style="font-size:2.2rem;">🔍🏚️</div>
+    <h1>The Mystery of Thornwood Manor</h1>
+    <p>A weekend revision quest through Units 81–83</p>
+  </header>
+
+  <div class="progress" id="progress"></div>
+
+  <div id="stage"></div>
+
+  <footer class="note">Made for our 7th grade revision — crack the case, and see you Monday! 🕵️</footer>
+</div>
+
+<script>
+/* ---------------- DATA ---------------- */
+const stations = [
+  {
+    title: "Room 1 · Whose Is It?",
+    subtitle: "-'s and of ...",
+    flavor: "A valuable painting has vanished from Thornwood Manor! Every clue in this room belongs to someone — show you know how to say who owns what.",
+    icon: "🔑",
+    questions: [
+      {
+        prompt: "____ computer isn't working. (Tom)",
+        options: ["Toms'", "Tom of", "Tom's", "The computer Tom"],
+        correct: 2,
+        good: "Yes! For people, we use -'s: Tom's computer.",
+        bad: "It's 'Tom's' — we use -'s (apostrophe + s) for people."
+      },
+      {
+        prompt: "the temperature ___ the water (not a person, so...)",
+        options: ["of", "'s", "of's", "water's"],
+        correct: 0,
+        good: "Correct! For things and ideas, we normally use 'of'.",
+        bad: "It's 'of' — for things and ideas, we normally use 'of ...', not -'s."
+      },
+      {
+        prompt: "Choose the correct possessive for ONE sister's bedroom:",
+        options: ["my sisters' room", "my sister room", "room of sister", "my sister's room"],
+        correct: 3,
+        good: "Right! Singular noun + -'s: my sister's room.",
+        bad: "It's 'my sister's room' — a singular noun takes -'s."
+      },
+      {
+        prompt: "TWO sisters share a bedroom. Choose the correct possessive:",
+        options: ["my sister's room", "my sisters' room", "my sisters's room", "room of my sisters'"],
+        correct: 1,
+        good: "Correct! Plural noun ending in -s just takes an apostrophe: my sisters' room.",
+        bad: "It's 'my sisters' room' — a plural noun ending in -s takes only an apostrophe."
+      },
+      {
+        prompt: "Choose the correct form: a ___ book (a book written for children)",
+        options: ["childrens'", "children's", "childs'", "child's"],
+        correct: 1,
+        good: "Yes! 'Children' doesn't end in -s, so we still use -'s: children's book.",
+        bad: "It's 'children's' — when a plural noun doesn't end in -s, we still use -'s."
+      }
+    ]
+  },
+  {
+    title: "Room 2 · The Hall of Mirrors",
+    subtitle: "myself / yourself / each other",
+    flavor: "The suspects keep talking about themselves — and about each other. Listen carefully, or you'll mix up who did what to whom.",
+    icon: "🪞",
+    questions: [
+      {
+        prompt: "Steve introduced ___ to the other guests.",
+        options: ["himself's", "him", "he", "himself"],
+        correct: 3,
+        good: "Yes! The subject and object are the same person, so we use 'himself'.",
+        bad: "It's 'himself' — when the subject and object are the same, we use a reflexive pronoun."
+      },
+      {
+        prompt: "Amy had a great holiday. She really enjoyed ___.",
+        options: ["herself", "her", "she", "hers"],
+        correct: 0,
+        good: "Correct! 'Enjoy' needs a reflexive pronoun here: enjoyed herself.",
+        bad: "It's 'herself' — 'enjoy' is often followed by a reflexive pronoun."
+      },
+      {
+        prompt: "I feel nervous. I can't ___. (relax — careful!)",
+        options: ["relax myself", "relax itself", "relax", "relaxed myself"],
+        correct: 2,
+        good: "Right! We do NOT use myself/yourself etc. after relax, feel, concentrate, or meet.",
+        bad: "It's just 'relax' — we don't use a reflexive pronoun after relax, feel, concentrate, or meet."
+      },
+      {
+        prompt: "Kate looked at Joe, and Joe looked at Kate. They looked at ___.",
+        options: ["each other", "themselves", "herself", "itself"],
+        correct: 0,
+        good: "Yes! When two people do the same thing to one another, we use 'each other'.",
+        bad: "It's 'each other' — Kate and Joe did the action to one another, not to themselves."
+      },
+      {
+        prompt: "'Who repaired your bike?' 'I repaired it ___.' (emphasising: I did it, not someone else)",
+        options: ["itself", "me", "myself", "my own"],
+        correct: 2,
+        good: "Correct! 'Myself' here emphasises that I did it alone, not another person.",
+        bad: "It's 'myself' — used here to emphasise that I did it, not someone else."
+      }
+    ]
+  },
+  {
+    title: "Room 3 · The Detective's Own Case",
+    subtitle: "a friend of mine / my own / on my own",
+    flavor: "A good detective trusts friends of theirs for leads, insists on their own methods, and sometimes has to solve things entirely alone.",
+    icon: "🕵️",
+    questions: [
+      {
+        prompt: "I'm going to a wedding. A ___ is getting married. (one of my friends)",
+        options: ["friend of me", "friend of mine", "my friend's", "friends of mine's"],
+        correct: 1,
+        good: "Yes! We say 'a friend of mine', not 'a friend of me'.",
+        bad: "It's 'a friend of mine' — this structure needs 'mine', not 'me'."
+      },
+      {
+        prompt: "I don't want to share a room. I want ___ room.",
+        options: ["an own", "mine own", "myself", "my own"],
+        correct: 3,
+        good: "Correct! We say my own / your own ..., never 'an own'.",
+        bad: "It's 'my own' — we never say 'an own'; it's always my/your/his own, etc."
+      },
+      {
+        prompt: "Paul never goes to a barber. He cuts ___ hair.",
+        options: ["himself", "his", "him own", "his own"],
+        correct: 3,
+        good: "Right! 'His own hair' shows he does it himself, instead of someone else doing it.",
+        bad: "It's 'his own' — this shows he does it himself, rather than someone else doing it for him."
+      },
+      {
+        prompt: "I like living ___. (alone)",
+        options: ["in my own", "on my own", "with my own", "at my own"],
+        correct: 1,
+        good: "Yes! 'On my own' means alone (same as 'by myself').",
+        bad: "It's 'on my own' — meaning alone. You could also say 'by myself'."
+      },
+      {
+        prompt: "Did you go on holiday by ___?",
+        options: ["your own", "you", "yourself", "yours"],
+        correct: 2,
+        good: "Correct! 'By myself/yourself' etc. also means alone.",
+        bad: "It's 'yourself' — 'by yourself' means alone, just like 'on your own'."
+      }
+    ]
+  },
+  {
+    title: "Final Room · Case Closed",
+    subtitle: "Mixed Review — Spot the Mistakes",
+    flavor: "Time to close the case! Every clue from the first three rooms is mixed together, and some of the suspects' statements contain mistakes. Catch them all to win.",
+    icon: "🏆",
+    questions: [
+      {
+        prompt: "Find the mistake: \"This isn't my book. It's my sister.\"",
+        options: ["Should be: It's my sister's.", "Should be: It's my sister own.", "Should be: It's sister of mine.", "No mistake"],
+        correct: 0,
+        good: "Yes! Without a noun after it, we still need -'s: It's my sister's.",
+        bad: "The fix is 'It's my sister's' — -'s can stand alone without a noun after it."
+      },
+      {
+        prompt: "Find the mistake: \"I introduced me to the other guests.\"",
+        options: ["Should be: I introduced my own to the other guests.", "Should be: I introduced each other to the other guests.", "Should be: I introduced myself to the other guests.", "No mistake"],
+        correct: 2,
+        good: "Correct! Subject and object are the same person, so it should be 'myself'.",
+        bad: "The fix is 'I introduced myself...' — the subject and object are the same person."
+      },
+      {
+        prompt: "Find the mistake: \"We met a relative of you.\"",
+        options: ["Should be: We met a relative of yours.", "Should be: We met a relative of your.", "Should be: We met your relative's.", "No mistake"],
+        correct: 0,
+        good: "Right! This structure needs 'yours', not 'you'.",
+        bad: "The fix is 'a relative of yours' — not 'of you'."
+      },
+      {
+        prompt: "Which is correct for the irregular plural noun 'children'?",
+        options: ["the childrens' book", "the book of the children's", "the child's book", "the children's book"],
+        correct: 3,
+        good: "Yes! 'Children' doesn't end in -s, so it still takes -'s: the children's book.",
+        bad: "It's 'the children's book' — irregular plurals like 'children' still take -'s."
+      },
+      {
+        prompt: "Find the mistake: \"He must be lonely. He's always with himself.\"",
+        options: ["Should be: He's always with his own.", "Should be: He's always on his own.", "Should be: He's always himself.", "No mistake"],
+        correct: 1,
+        good: "Correct! You can't really be 'with' yourself — the natural phrase is 'on his own' (alone).",
+        bad: "The fix is 'He's always on his own' — meaning alone, not 'with himself'."
+      }
+    ]
+  }
+];
+
+/* ---------------- STATE ---------------- */
+let current = 0;
+let totalStars = 0;
+let totalQuestions = stations.reduce((s, st) => s + st.questions.length, 0);
+
+const stage = document.getElementById('stage');
+const progressEl = document.getElementById('progress');
+
+function renderProgress(){
+  progressEl.innerHTML = '';
+  stations.forEach((st, i) => {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === current ? ' active' : (i < current ? ' done' : ''));
+    d.textContent = i < current ? '✓' : st.icon;
+    progressEl.appendChild(d);
+  });
+}
+
+function renderIntro(){
+  stage.innerHTML = `
+    <div class="card">
+      <h2>🏚️ A Painting Has Vanished</h2>
+      <p>Welcome, detective! A valuable painting has disappeared from Thornwood Manor, and you've been called in to crack the case. To follow every clue, you'll need sharp grammar skills across <strong>4 rooms</strong>: showing who owns what (-'s and of...), untangling the suspects' reflections (myself/yourself/each other), and following your own leads like a true detective (a friend of mine / my own / on my own).</p>
+      <p>Answer each challenge to earn a star ⭐. Ready to open the case file?</p>
+      <button class="start-btn" onclick="startQuest()">Enter the Manor 🔍</button>
+    </div>
+  `;
+}
+
+function startQuest(){
+  current = 0;
+  totalStars = 0;
+  renderProgress();
+  renderStation();
+}
+
+function renderStation(){
+  renderProgress();
+  const st = stations[current];
+  let qHtml = '';
+  st.questions.forEach((q, qi) => {
+    const opts = q.options.map((opt, oi) =>
+      `<button class="opt-btn" onclick="answer(${qi}, ${oi}, this)">${opt}</button>`
+    ).join('');
+    qHtml += `
+      <div class="question" id="q-${qi}">
+        <p class="prompt">${qi + 1}. ${q.prompt}</p>
+        <div class="options">${opts}</div>
+        <div class="feedback" id="fb-${qi}"></div>
+      </div>
+    `;
+  });
+
+  stage.innerHTML = `
+    <div class="card">
+      <span class="score-pill">⭐ ${totalStars}/${totalQuestions}</span>
+      <h2>${st.icon} ${st.title}</h2>
+      <p style="margin-top:-8px;color:#666;font-weight:bold;">${st.subtitle}</p>
+      <div class="flavor">${st.flavor}</div>
+      ${qHtml}
+      <button class="next-btn hidden" id="next-btn" onclick="nextStation()">
+        ${current === stations.length - 1 ? "Close the Case! 🏆" : "Search the Next Room →"}
+      </button>
+    </div>
+  `;
+  window.__answered = new Array(st.questions.length).fill(false);
+}
+
+function answer(qi, oi, btnEl){
+  const st = stations[current];
+  const q = st.questions[qi];
+  if (window.__answered[qi]) return;
+  window.__answered[qi] = true;
+
+  const container = document.getElementById('q-' + qi);
+  const buttons = container.querySelectorAll('.opt-btn');
+  buttons.forEach((b, i) => {
+    b.disabled = true;
+    if (i === q.correct) b.classList.add('reveal');
+  });
+
+  const fb = document.getElementById('fb-' + qi);
+  if (oi === q.correct) {
+    totalStars++;
+    fb.textContent = '⭐ ' + q.good;
+    fb.className = 'feedback good';
+  } else {
+    btnEl.classList.add('wrong');
+    fb.textContent = '💭 ' + q.bad;
+    fb.className = 'feedback bad';
+  }
+
+  document.querySelector('.score-pill').textContent = `⭐ ${totalStars}/${totalQuestions}`;
+
+  if (window.__answered.every(a => a)) {
+    document.getElementById('next-btn').classList.remove('hidden');
+  }
+}
+
+function nextStation(){
+  current++;
+  if (current >= stations.length) {
+    renderFinal();
+  } else {
+    renderStation();
+  }
+}
+
+function renderFinal(){
+  progressEl.querySelectorAll('.dot').forEach(d => d.classList.add('done'));
+  let tier;
+  const pct = totalStars / totalQuestions;
+  if (pct === 1) { tier = "Case cracked perfectly! You're Thornwood Manor's finest detective. 🔍"; }
+  else if (pct >= 0.8) { tier = "Great detective work! Just a clue or two to double-check. 🕵️"; }
+  else if (pct >= 0.6) { tier = "Good progress! Review the trickier rooms before Monday. 🔑"; }
+  else { tier = "You've opened the case file — now go back and study the clues again! 📖"; }
+
+  stage.innerHTML = `
+    <div class="card final">
+      <h2>🏆 Case Closed!</h2>
+      <div class="treasure">🔍🖼️🕵️</div>
+      <div class="stat-line">⭐ ${totalStars} / ${totalQuestions} stars earned</div>
+      <p>${tier}</p>
+      <p>Great job revising -'s and of..., reflexive pronouns and each other, and a friend of mine / my own / on my own this weekend!</p>
+      <button class="restart-btn" onclick="startQuest()">Reopen the Case 🔁</button>
+    </div>
+  `;
+  launchConfetti();
+}
+
+/* ---------------- Background stars ---------------- */
+(function drawStars(){
+  const c = document.createElement('div');
+  c.className = 'stars';
+  document.body.prepend(c);
+})();
+
+/* ---------------- Confetti (vanilla canvas) ---------------- */
+function launchConfetti(){
+  const canvas = document.getElementById('confetti');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#d4af37', '#4a7a6b', '#a13d3d', '#4caf7d', '#f5efe0'];
+  const pieces = Array.from({length: 140}, () => ({
+    x: Math.random() * canvas.width,
+    y: -20 - Math.random() * canvas.height,
+    r: 4 + Math.random() * 5,
+    c: colors[Math.floor(Math.random() * colors.length)],
+    vy: 2 + Math.random() * 3,
+    vx: -1.5 + Math.random() * 3,
+    rot: Math.random() * 360,
+    vr: -6 + Math.random() * 12
+  }));
+  let frames = 0;
+  function tick(){
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pieces.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot * Math.PI / 180);
+      ctx.fillStyle = p.c;
+      ctx.fillRect(-p.r/2, -p.r/2, p.r, p.r * 0.6);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 260) {
+      requestAnimationFrame(tick);
+    } else {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
+  }
+  tick();
+}
+window.addEventListener('resize', () => {
+  const canvas = document.getElementById('confetti');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+
+/* ---------------- Init ---------------- */
+renderProgress();
+renderIntro();
+</script>
+</body>
+</html>
