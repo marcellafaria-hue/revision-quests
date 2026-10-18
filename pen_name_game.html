@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Pen Name Game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Abril+Fatface&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap">
+<style>
+/* Layout: a game-show board on deep aubergine ink; scores in pounds, as in Woolf's £500 a year. Single dark look, made for a projector. */
+:root {
+  --ink: #1d1024;          /* page */
+  --plum: #3a1d47;         /* tiles */
+  --plum-hi: #4d2760;      /* tile hover */
+  --wax: #e0457b;          /* sealing-wax accent */
+  --paper: #f3e9dc;        /* main text */
+  --muted: #b9a3c2;        /* secondary text */
+  --line: #5b3a6b;
+  --good: #3fbf8a;
+  --bad: #e5604f;
+  --gold: #f2c35b;         /* double points only */
+  --display: "Abril Fatface", "Playfair Display", Georgia, serif;
+  --body: "Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+html, body { background: var(--ink); color: var(--paper); margin:0; padding:0; }
+body { font-family: var(--body); font-size: 17px; line-height: 1.45; }
+.wrap {
+  max-width: 1280px; margin: 0 auto;
+  padding-block: 20px 40px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 18px;
+}
+header { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+h1 { font-family: var(--display); font-weight: 400; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1; margin: 0; letter-spacing: .01em; text-wrap: balance; }
+h1 em { font-style: normal; color: var(--wax); }
+.sub { color: var(--muted); margin: 6px 0 0; font-size: .95rem; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+button { font: inherit; color: inherit; cursor: pointer; }
+.btn {
+  background: transparent; border: 1.5px solid var(--line); color: var(--paper);
+  padding: 8px 14px; border-radius: 999px; font-weight: 700; font-size: .9rem;
+}
+.btn:hover { border-color: var(--muted); }
+.btn.primary { background: var(--wax); border-color: var(--wax); color: #fff; }
+.btn.primary:hover { filter: brightness(1.08); }
+:focus-visible { outline: 3px solid var(--gold); outline-offset: 2px; }
+
+/* Teams */
+.teams { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+.team {
+  border: 1.5px solid var(--line); border-radius: 14px; padding: 10px 12px;
+  display: grid; gap: 4px; min-width: 0; background: color-mix(in srgb, var(--plum) 45%, var(--ink));
+}
+.team.lead { border-color: var(--wax); }
+.team input {
+  background: transparent; border: none; color: var(--paper); font: inherit; font-weight: 700;
+  width: 100%; min-width: 0; padding: 2px 0; border-bottom: 1px dashed transparent;
+}
+.team input:hover, .team input:focus { border-bottom-color: var(--muted); outline: none; }
+.team .row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+.score { font-family: var(--display); font-size: 2rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.adj { display: flex; gap: 4px; }
+.adj button { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); background: transparent; font-weight: 700; }
+.adj button:hover { border-color: var(--muted); }
+.goal { height: 5px; border-radius: 3px; background: var(--line); overflow: hidden; }
+.goal span { display: block; height: 100%; background: var(--wax); transition: width .4s; }
+.teamtools { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: .85rem; flex-wrap: wrap; }
+
+/* Board */
+.boardwrap { overflow-x: auto; }
+.board { display: grid; grid-template-columns: repeat(6, minmax(130px, 1fr)); gap: 8px; min-width: 820px; }
+.cat {
+  text-align: center; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; font-size: .82rem;
+  padding: 12px 6px; color: var(--paper); border-bottom: 3px solid var(--wax); display: grid; place-items: center; text-wrap: balance;
+}
+.tile {
+  aspect-ratio: 16 / 10; max-width: 100%; border: none; border-radius: 12px; background: var(--plum);
+  font-family: var(--display); font-size: clamp(1.6rem, 3vw, 2.4rem); color: var(--paper);
+  display: grid; place-items: center; position: relative; transition: transform .15s, background .15s;
+}
+.tile:hover:not(:disabled) { background: var(--plum-hi); transform: translateY(-2px); }
+.tile:disabled { background: transparent; border: 1.5px dashed var(--line); cursor: default; color: var(--muted); }
+.tile .won { font-family: var(--body); font-size: .8rem; font-weight: 700; padding: 0 6px; text-align: center; }
+.foot { color: var(--muted); font-size: .85rem; margin: 0; }
+
+/* Modal */
+.overlay {
+  position: fixed; inset: 0; z-index: 20; background: color-mix(in srgb, var(--ink) 92%, transparent);
+  display: grid; place-items: center; overflow-y: auto;
+  padding: calc(16px + env(safe-area-inset-top, 0px)) max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px));
+}
+.card {
+  width: min(960px, 100%); background: var(--plum); border-radius: 20px; padding: clamp(18px, 4vw, 36px);
+  display: grid; gap: 18px; box-shadow: 0 30px 80px rgba(0,0,0,.5);
+}
+.meta { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; justify-content: space-between; }
+.eyebrow { text-transform: uppercase; letter-spacing: .1em; font-size: .8rem; font-weight: 700; color: var(--muted); }
+.val { font-family: var(--display); font-size: 1.8rem; }
+.double { background: var(--gold); color: var(--ink); font-weight: 700; padding: 4px 12px; border-radius: 999px; font-size: .85rem; letter-spacing: .05em; }
+.q { font-size: clamp(1.35rem, 3vw, 2rem); line-height: 1.3; margin: 0; font-weight: 700; text-wrap: balance; }
+.opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+.opt {
+  text-align: left; background: color-mix(in srgb, var(--ink) 55%, var(--plum)); border: 2px solid var(--line);
+  border-radius: 14px; padding: 14px 16px; font-size: 1.1rem; display: flex; gap: 12px; align-items: baseline; min-width: 0;
+}
+.opt:hover { border-color: var(--muted); }
+.opt b { font-family: var(--display); font-weight: 400; color: var(--wax); font-size: 1.3rem; }
+.opt.right { border-color: var(--good); background: color-mix(in srgb, var(--good) 22%, var(--plum)); }
+.opt.right b { color: var(--good); }
+.opt.wrong { border-color: var(--bad); opacity: .65; text-decoration: line-through; }
+.steal { color: var(--gold); font-weight: 700; font-size: 1.1rem; }
+.answer { border-left: 4px solid var(--good); padding: 10px 16px; background: color-mix(in srgb, var(--ink) 40%, var(--plum)); border-radius: 0 12px 12px 0; font-size: 1.1rem; }
+.answer strong { color: var(--good); }
+.timer { display: flex; align-items: center; gap: 10px; }
+.bar { flex: 1; height: 8px; background: var(--line); border-radius: 4px; overflow: hidden; }
+.bar span { display: block; height: 100%; width: 100%; background: var(--wax); }
+.bar.low span { background: var(--bad); }
+.secs { font-variant-numeric: tabular-nums; font-weight: 700; min-width: 3ch; text-align: right; }
+.award { display: grid; gap: 8px; }
+.award .list { display: flex; flex-wrap: wrap; gap: 8px; }
+.award .btn.team-btn { border-color: var(--good); }
+.award .btn.team-btn:hover { background: color-mix(in srgb, var(--good) 25%, transparent); }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.final-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.final-row:last-child { border-bottom: none; }
+.rank { display: grid; gap: 8px; }
+.rank div { display: flex; justify-content: space-between; gap: 12px; font-size: 1.25rem; padding: 10px 14px; border-radius: 12px; background: color-mix(in srgb, var(--ink) 45%, var(--plum)); }
+.rank div:first-child { background: var(--wax); color: #fff; font-weight: 700; }
+.rank .s { font-family: var(--display); font-variant-numeric: tabular-nums; }
+#confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+@media (max-width: 520px) { body { font-size: 16px; } .score { font-size: 1.6rem; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>The Pen Name <em>Game</em></h1>
+      <p class="sub">Do girls run the world? · Women writers, pen names, Austen &amp; Woolf · Every team is playing for £500 a year</p>
+    </div>
+    <div class="tools">
+      <button class="btn" id="soundBtn" type="button">Sound: on</button>
+      <button class="btn" id="finalBtn" type="button">Final round</button>
+      <button class="btn" id="winnerBtn" type="button">Show winner</button>
+      <button class="btn" id="newBtn" type="button">New game</button>
+    </div>
+  </header>
+
+  <section>
+    <div class="teams" id="teams"></div>
+    <div class="teamtools" style="margin-top:8px">
+      <button class="btn" id="addTeam" type="button">+ Add team</button>
+      <button class="btn" id="removeTeam" type="button">− Remove team</button>
+      <span>Click a team name to rename it. The bar fills as a team gets closer to Woolf's £500.</span>
+    </div>
+  </section>
+
+  <div class="boardwrap"><div class="board" id="board"></div></div>
+  <p class="foot">Two hidden tiles are worth double. If a team answers wrongly, the other teams can steal. Big Ideas answers are open: you decide if they earn the points.</p>
+</div>
+
+<div class="overlay" id="overlay" hidden></div>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const CATS = [
+  { name: "Pen Names", qs: [
+    { q: "A <i>nom de plume</i> is…", o: ["A feather used for writing", "A fictitious name an author writes under", "The French word for a novel", "A secret diary"], a: 1, x: "It's also called a pseudonym or a pen name. It can hide a writer's identity." },
+    { q: "The Brontë sisters first published their books as…", o: ["Currer, Ellis and Acton Bell", "Charles, Edward and Arthur Bell", "George, Henry and Frank Brown", "Charlotte, Emily and Anne Brontë"], a: 0, x: "Charlotte = Currer, Emily = Ellis, Anne = Acton. Notice they kept their own first initials!" },
+    { q: "Mary Ann Evans wrote as George Eliot. Which novel was so successful that she had to reveal who she really was?", o: ["Pride and Prejudice", "Jane Eyre", "Adam Bede", "Wuthering Heights"], a: 2, x: "Several men came forward and claimed they had written <i>Adam Bede</i>!" },
+    { q: "The French writer Aurore Dupin (pen name George Sand) sometimes disguised herself as a man. Why?", o: ["To act in the theatre", "To walk freely through Paris and observe city life", "To hide from her publisher", "To win a bet with her friends"], a: 1, x: "Dressed as a man, she could wander the streets of Paris and observe life in the city." }
+  ]},
+  { name: "Firsts & Finds", qs: [
+    { q: "Who is often called the first woman to earn a living by writing?", o: ["Jane Austen", "Aphra Behn", "Virginia Woolf", "Margery Kempe"], a: 1, x: "Aphra Behn wrote plays for the Duke's Theatre in London in the 1600s, and also novels and poems." },
+    { q: "The only known copy of <i>The Book of Margery Kempe</i> was found in a country house in the 1930s. How?", o: ["It was mislabelled in a library", "It was buried in the garden", "It fell out of a cupboard during a search for a ping-pong ball", "It was hidden inside a wall"], a: 2, x: "A game of ping-pong led to one of the earliest examples of women's writing in English!" },
+    { q: "Aphra Behn started writing to earn money. What was she trying to avoid?", o: ["A forced marriage", "Debtor's prison", "Life in a convent", "A long sea voyage"], a: 1, x: "She wrote to save herself from debtor's prison, and became a professional writer." },
+    { q: "<i>The Book of Margery Kempe</i> describes one woman's life in which century?", o: ["The 13th century", "The 15th century", "The 17th century", "The 19th century"], a: 1, x: "It's from the fifteenth century and shows Margery challenging the 'feminine' roles expected of women in medieval England." }
+  ]},
+  { name: "Pride & Prejudice", qs: [
+    { q: "Finish Austen's famous first line: “It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a…”", o: ["house", "wife", "servant", "friend"], a: 1, x: "…a wife. One of the most famous opening lines in English literature (1813)." },
+    { q: "Who has just rented Netherfield Park?", o: ["Mr Bennet", "Mr Bingley", "Sir William Lucas", "Mr Morris"], a: 1, x: "Mr Bingley: young, single, and with a large fortune of four or five thousand a year." },
+    { q: "According to the narrator, what is “the business” of Mrs Bennet's life?", o: ["Visiting and news", "Getting her daughters married", "Looking after her nerves", "Reading novels"], a: 1, x: "Getting her daughters married. Visiting and news were only her <i>comfort</i> (her “solace”). Tricky!" },
+    { q: "Mr Bennet says one daughter has “something more of quickness than her sisters.” Who?", o: ["Jane", "Lydia", "Lizzy", "Mary"], a: 2, x: "Lizzy (Elizabeth), the heroine of the novel." }
+  ]},
+  { name: "Woolf's Room", qs: [
+    { q: "Woolf wrote that a woman must have money and ______ if she is to write fiction.", o: ["a good education", "a room of her own", "a famous husband", "a pen name"], a: 1, x: "A room of her own: private space to think and create." },
+    { q: "How much money a year did Woolf later say a woman writer needed?", o: ["£50", "£100", "£500", "£5,000"], a: 2, x: "£500 a year. That's why the scores in this game are in pounds!" },
+    { q: "When was <i>A Room of One's Own</i> published?", o: ["1813", "1879", "1929", "1979"], a: 2, x: "1929. Woolf was a modernist writer and an advocate for women's rights." },
+    { q: "Woolf said all women should let flowers fall on whose tomb, because she earned them the right to speak their minds?", o: ["Jane Austen", "Aphra Behn", "Charlotte Brontë", "George Eliot"], a: 1, x: "Aphra Behn, the first professional woman writer in English." }
+  ]},
+  { name: "Writer's Tricks", qs: [
+    { q: "A rhetorical question is a question that…", o: ["needs a very long answer", "doesn't need an answer: it creates an effect or makes the audience think", "only a teacher can ask", "only appears in poems"], a: 1, x: "Writers use rhetorical questions for dramatic effect or to make the audience think." },
+    { q: "What do we call it when a writer asks a question and then answers it immediately?", o: ["Hyperbole", "Hypophora", "Alliteration", "Onomatopoeia"], a: 1, x: "Hypophora! Beyoncé's famous song title does exactly this: a question, then the answer." },
+    { q: "Spot the technique: “Why did women use pen names? Because their books were often judged unfairly.”", o: ["Rhetorical question", "Simile", "Hypophora", "Personification"], a: 2, x: "A question raised and answered straight away is hypophora." },
+    { open: true, q: "Write your own <b>hypophora</b> about a writer from this unit. You have 60 seconds!", x: "Your teacher decides. A good one asks a question and answers it at once, e.g. “Who found Margery Kempe's book? Someone looking for a ping-pong ball.”" }
+  ]},
+  { name: "Big Ideas", qs: [
+    { open: true, q: "Give <b>two</b> reasons why women writers might have used pen names.", x: "Possible answers: to be taken seriously; to avoid prejudice against women writers; so their books were judged on quality; to protect their privacy or reputation; to get published at all." },
+    { open: true, q: "Why were women expected to marry in Jane Austen's time?", x: "Possible answers: money and security. Most women couldn't have professions or easily inherit property, so marriage decided their home, income and place in society." },
+    { open: true, q: "What might happen to a woman who stayed single in Austen's time?", x: "Possible answers: she could be poor, depend on relatives, lose her home when her father died, or be pitied by society." },
+    { open: true, q: "Woolf said women were held back by having no money and no private space. Is that still true for some people today? Give an example and a reason.", x: "Your teacher decides. Reward a clear opinion, a real example and a reason." }
+  ]}
+];
+const VALUES = [100, 200, 300, 400];
+const DEFAULT_TEAMS = ["The Currers", "The Ellises", "The Actons", "The Eliots", "The Sands", "The Behns"];
+const STORE = "pen-name-game-v1";
+
+let S;
+function fresh(n = 4) {
+  const all = [];
+  for (let c = 0; c < CATS.length; c++) for (let r = 0; r < 4; r++) all.push(c + "-" + r);
+  const doubles = [];
+  while (doubles.length < 2) { const k = all[Math.floor(Math.random() * all.length)]; if (!doubles.includes(k) && !k.endsWith("-0")) doubles.push(k); }
+  return { teams: DEFAULT_TEAMS.slice(0, n).map(name => ({ name, score: 0 })), used: {}, doubles, sound: true };
+}
+function save() { try { localStorage.setItem(STORE, JSON.stringify(S)); } catch (e) {} }
+function load() { try { const v = JSON.parse(localStorage.getItem(STORE)); if (v && v.teams) return v; } catch (e) {} return null; }
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const money = n => (n < 0 ? "−£" : "£") + Math.abs(n).toLocaleString("en-GB");
+
+/* Sound */
+let actx;
+function tone(freqs, dur = .12) {
+  if (!S.sound) return;
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    freqs.forEach((f, i) => {
+      const o = actx.createOscillator(), g = actx.createGain(), t = actx.currentTime + i * dur;
+      o.type = "triangle"; o.frequency.value = f;
+      g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.25, t + .02); g.gain.exponentialRampToValueAtTime(.0001, t + dur + .1);
+      o.connect(g); g.connect(actx.destination); o.start(t); o.stop(t + dur + .15);
+    });
+  } catch (e) {}
+}
+const sfx = { right: () => tone([523, 659, 784]), wrong: () => tone([220, 175], .2), tick: () => tone([880], .05), open: () => tone([392, 523], .08), win: () => tone([523, 659, 784, 1047], .15) };
+
+/* Render */
+function renderTeams() {
+  const max = Math.max(...S.teams.map(t => t.score));
+  $("teams").innerHTML = S.teams.map((t, i) => `
+    <div class="team ${t.score > 0 && t.score === max ? "lead" : ""}">
+      <input id="team-${i}" value="${esc(t.name)}" aria-label="Team ${i + 1} name" data-i="${i}">
+      <div class="row"><span class="score">${money(t.score)}</span>
+        <span class="adj"><button type="button" data-adj="${i}" data-d="-100" aria-label="Take £100 from ${esc(t.name)}">−</button><button type="button" data-adj="${i}" data-d="100" aria-label="Give £100 to ${esc(t.name)}">+</button></span></div>
+      <div class="goal"><span style="width:${Math.max(0, Math.min(100, t.score / 5))}%"></span></div>
+    </div>`).join("");
+  $("soundBtn").textContent = "Sound: " + (S.sound ? "on" : "off");
+}
+function renderBoard() {
+  let h = CATS.map(c => `<div class="cat">${c.name}</div>`).join("");
+  for (let r = 0; r < 4; r++) for (let c = 0; c < CATS.length; c++) {
+    const k = c + "-" + r, u = S.used[k];
+    if (u !== undefined) {
+      const who = u >= 0 && S.teams[u] ? esc(S.teams[u].name) : "No one";
+      h += `<button class="tile" disabled><span class="won">${who}</span></button>`;
+    } else h += `<button class="tile" type="button" data-k="${k}" aria-label="${CATS[c].name} for ${money(VALUES[r])}">${money(VALUES[r])}</button>`;
+  }
+  $("board").innerHTML = h;
+}
+function render() { renderTeams(); renderBoard(); save(); }
+
+/* Timer */
+let timerId = null;
+function stopTimer() { clearInterval(timerId); timerId = null; }
+function startTimer(secs) {
+  stopTimer();
+  let left = secs; const bar = $("tbar"), lbl = $("tsecs");
+  const draw = () => { bar.firstElementChild.style.width = (left / secs * 100) + "%"; bar.classList.toggle("low", left <= 5); lbl.textContent = left + "s"; };
+  draw();
+  timerId = setInterval(() => {
+    left--; if (left <= 5 && left > 0) sfx.tick();
+    draw();
+    if (left <= 0) { stopTimer(); sfx.wrong(); lbl.textContent = "Time!"; }
+  }, 1000);
+}
+
+/* Question */
+function openQ(k) {
+  const [c, r] = k.split("-").map(Number), Q = CATS[c].qs[r];
+  const dbl = S.doubles.includes(k), pts = VALUES[r] * (dbl ? 2 : 1);
+  const secs = Q.open ? 60 : 30;
+  sfx.open();
+  const opts = Q.open ? "" : `<div class="opts">${Q.o.map((o, i) => `<button type="button" class="opt" data-o="${i}"><b>${"ABCD"[i]}</b><span>${o}</span></button>`).join("")}</div>`;
+  $("overlay").innerHTML = `
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="qtext">
+      <div class="meta"><span class="eyebrow">${CATS[c].name}</span>
+        <span style="display:flex;gap:10px;align-items:center">${dbl ? '<span class="double">DOUBLE POINTS</span>' : ""}<span class="val">${money(pts)}</span></span></div>
+      ${dbl ? '<p class="steal" style="margin:0">Hidden double! This one is worth twice as much.</p>' : ""}
+      <p class="q" id="qtext">${Q.q}</p>
+      ${opts}
+      <p class="steal" id="steal" hidden style="margin:0">Wrong! Another team can steal.</p>
+      <div class="timer"><button class="btn" type="button" id="tstart">Start ${secs}s timer</button><div class="bar" id="tbar"><span></span></div><span class="secs" id="tsecs">${secs}s</span></div>
+      <div class="answer" id="ans" hidden>${Q.open ? "<strong>Look for:</strong> " : "<strong>Answer: " + "ABCD"[Q.a] + ".</strong> "}${Q.x}</div>
+      <div class="award" id="award">
+        <span class="eyebrow">Who gets ${money(pts)}?</span>
+        <div class="list">${S.teams.map((t, i) => `<button type="button" class="btn team-btn" data-win="${i}">${esc(t.name)}</button>`).join("")}<button type="button" class="btn" data-win="-1">No one</button></div>
+      </div>
+      <div class="actions"><button type="button" class="btn primary" id="reveal">Reveal answer</button><button type="button" class="btn" id="back">Back to board</button></div>
+    </div>`;
+  $("overlay").hidden = false;
+  $("tstart").onclick = () => startTimer(secs);
+  $("reveal").onclick = () => { $("ans").hidden = false; if (!Q.open) markRight(); };
+  $("back").onclick = closeQ;
+  function markRight() { const el = $("overlay").querySelector(`[data-o="${Q.a}"]`); el && el.classList.add("right"); }
+  $("overlay").querySelectorAll(".opt").forEach(b => b.onclick = () => {
+    const i = +b.dataset.o;
+    if (i === Q.a) { stopTimer(); b.classList.add("right"); $("ans").hidden = false; $("steal").hidden = true; sfx.right(); }
+    else { b.classList.add("wrong"); $("steal").hidden = false; sfx.wrong(); }
+  });
+  $("overlay").querySelectorAll("[data-win]").forEach(b => b.onclick = () => {
+    const w = +b.dataset.win;
+    if (w >= 0) { S.teams[w].score += pts; sfx.right(); }
+    S.used[k] = w; closeQ(); render();
+    if (Object.keys(S.used).length === CATS.length * 4) setTimeout(openFinal, 400);
+  });
+  $("overlay").querySelector(".card").focus?.();
+}
+function closeQ() { stopTimer(); $("overlay").hidden = true; $("overlay").innerHTML = ""; }
+
+/* Final round */
+function openFinal() {
+  $("overlay").innerHTML = `
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="ftitle">
+      <div class="meta"><span class="eyebrow">Final round</span><span class="val">up to £500</span></div>
+      <p class="q" id="ftitle">The Pen Name Challenge</p>
+      <p style="margin:0;font-size:1.15rem">Your team has written a novel together. Invent your <b>pen name</b> and explain it in two sentences: what does your pen name hide, and what does it reveal about you? Two minutes to plan, then each team presents.</p>
+      <div class="timer"><button class="btn" type="button" id="tstart">Start 2-minute timer</button><div class="bar" id="tbar"><span></span></div><span class="secs" id="tsecs">120s</span></div>
+      <div>${S.teams.map((t, i) => `<div class="final-row"><strong>${esc(t.name)}</strong><span class="adj" style="gap:8px">${[100, 300, 500].map(v => `<button type="button" class="btn team-btn" style="width:auto;height:auto;border-radius:999px" data-fi="${i}" data-fv="${v}">+${money(v)}</button>`).join("")}</span></div>`).join("")}</div>
+      <div class="actions"><button type="button" class="btn primary" id="toWinner">Show winner</button><button type="button" class="btn" id="back">Back to board</button></div>
+    </div>`;
+  $("overlay").hidden = false;
+  $("tstart").onclick = () => startTimer(120);
+  $("back").onclick = closeQ;
+  $("toWinner").onclick = openWinner;
+  $("overlay").querySelectorAll("[data-fi]").forEach(b => b.onclick = () => {
+    S.teams[+b.dataset.fi].score += +b.dataset.fv; sfx.right(); renderTeams(); save();
+    b.disabled = true; b.style.opacity = .45;
+  });
+}
+
+/* Winner */
+function openWinner() {
+  stopTimer();
+  const ranked = S.teams.map(t => t).sort((a, b) => b.score - a.score);
+  const top = ranked[0];
+  const line = top.score >= 500 ? `${esc(top.name)} earned ${money(top.score)}: enough for Woolf's £500 a year and a room of their own!` : `${esc(top.name)} wins with ${money(top.score)}. Not quite Woolf's £500 a year… yet!`;
+  $("overlay").innerHTML = `
+    <div class="card" role="dialog" aria-modal="true" aria-labelledby="wtitle">
+      <span class="eyebrow">Final scores</span>
+      <p class="q" id="wtitle">${line}</p>
+      <div class="rank">${ranked.map(t => `<div><span>${esc(t.name)}</span><span class="s">${money(t.score)}</span></div>`).join("")}</div>
+      <div class="actions"><button type="button" class="btn" id="back">Back to board</button></div>
+    </div>`;
+  $("overlay").hidden = false;
+  $("back").onclick = () => { closeQ(); stopConfetti(); };
+  sfx.win(); confetti();
+}
+
+/* Confetti */
+let confRaf;
+function stopConfetti() { cancelAnimationFrame(confRaf); $("confetti").hidden = true; }
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = $("confetti"), ctx = cv.getContext("2d");
+  cv.hidden = false; cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ["#e0457b", "#f2c35b", "#f3e9dc", "#3fbf8a", "#b9a3c2"];
+  const ps = Array.from({ length: 160 }, () => ({ x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .6, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 3, r: Math.random() * 6, s: 5 + Math.random() * 6, c: cols[Math.floor(Math.random() * cols.length)], w: Math.random() * .2 }));
+  let f = 0;
+  (function step() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.r += p.w; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r); ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2); ctx.restore(); });
+    if (++f < 260) confRaf = requestAnimationFrame(step); else stopConfetti();
+  })();
+}
+
+/* Events */
+$("board").addEventListener("click", e => { const t = e.target.closest("[data-k]"); if (t) openQ(t.dataset.k); });
+$("teams").addEventListener("input", e => { const i = e.target.dataset.i; if (i !== undefined) { S.teams[i].name = e.target.value || "Team " + (+i + 1); save(); } });
+$("teams").addEventListener("change", () => renderBoard());
+$("teams").addEventListener("click", e => { const b = e.target.closest("[data-adj]"); if (b) { S.teams[+b.dataset.adj].score += +b.dataset.d; render(); } });
+$("addTeam").onclick = () => { if (S.teams.length < 6) { S.teams.push({ name: DEFAULT_TEAMS[S.teams.length], score: 0 }); render(); } };
+$("removeTeam").onclick = () => { if (S.teams.length > 2) { S.teams.pop(); for (const k in S.used) if (S.used[k] >= S.teams.length) S.used[k] = -1; render(); } };
+$("soundBtn").onclick = () => { S.sound = !S.sound; render(); };
+$("finalBtn").onclick = openFinal;
+$("winnerBtn").onclick = openWinner;
+let confirmNew = false;
+$("newBtn").onclick = () => {
+  if (!confirmNew) { confirmNew = true; $("newBtn").textContent = "Click again to reset"; setTimeout(() => { confirmNew = false; $("newBtn").textContent = "New game"; }, 3000); return; }
+  confirmNew = false; $("newBtn").textContent = "New game";
+  const names = S.teams.map(t => t.name); S = fresh(names.length); S.teams.forEach((t, i) => t.name = names[i]); render();
+};
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("overlay").hidden) { closeQ(); stopConfetti(); } });
+
+function start(data) { S = (data && data.teams) ? data : (load() || fresh()); render(); }
+start({});
+</script>
+
+</body>
+</html>
