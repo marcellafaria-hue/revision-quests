@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Pen Name Trail</title>
+<style>
+  :root {
+    --ink: #2b1f1a;
+    --paper: #f3e9dc;
+    --parchment: #ece0cb;
+    --wax: #a13d3d;
+    --wax-dark: #7e2d2d;
+    --gold: #b8941f;
+    --green: #3f8a5e;
+    --red: #a13d3d;
+    --line: #d8c7a8;
+    --card-shadow: 0 18px 40px rgba(43,31,26,.18);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: linear-gradient(160deg, var(--parchment), #e4d4b4 60%, #d9c6a0);
+    color: var(--ink);
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1, h2, h3 { font-family: Georgia, serif; margin: 0; }
+  .hidden { display: none !important; }
+
+  /* Intro */
+  #intro { text-align: center; padding-top: 30px; }
+  #intro .seal { font-size: 3.2rem; }
+  #intro h1 { font-size: clamp(1.8rem, 6vw, 2.6rem); margin: 10px 0 6px; color: var(--wax-dark); }
+  #intro p { font-size: 1.05rem; line-height: 1.5; color: #4a3b30; max-width: 560px; margin: 0 auto 10px; }
+  .notebook {
+    margin: 22px auto; text-align: left; background: var(--paper); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px 20px; box-shadow: var(--card-shadow);
+  }
+  .notebook h3 { color: var(--wax-dark); font-size: 1.05rem; margin-bottom: 8px; }
+  .notebook ul { margin: 0; padding-left: 20px; line-height: 1.6; font-size: .95rem; }
+  .btn {
+    display: inline-block; margin-top: 14px; padding: 13px 30px; border: none; border-radius: 999px;
+    background: var(--wax); color: #fff; font-size: 1.05rem; font-weight: bold; cursor: pointer;
+    font-family: Georgia, serif; box-shadow: var(--card-shadow);
+  }
+  .btn:hover { background: var(--wax-dark); }
+  .btn.secondary { background: transparent; color: var(--wax-dark); border: 2px solid var(--wax-dark); box-shadow: none; }
+
+  /* Progress */
+  #progress { display: flex; justify-content: center; gap: 8px; margin: 18px 0 6px; flex-wrap: wrap; }
+  .dot {
+    width: 14px; height: 14px; border-radius: 50%; background: var(--line); border: 2px solid var(--line);
+  }
+  .dot.done { background: var(--green); border-color: var(--green); }
+  .dot.current { background: var(--wax); border-color: var(--wax-dark); }
+
+  #scorepill {
+    text-align: center; font-size: .95rem; font-weight: bold; color: var(--wax-dark);
+    margin-bottom: 6px;
+  }
+
+  /* Station header */
+  #stationHeader { text-align: center; margin-bottom: 10px; }
+  #stationHeader .icon { font-size: 2.2rem; }
+  #stationHeader h2 { font-size: 1.3rem; color: var(--wax-dark); margin-top: 4px; }
+  #stationHeader p { font-size: .9rem; color: #6b5a48; margin: 2px 0 0; font-style: italic; }
+
+  /* Card */
+  .card {
+    background: var(--paper); border: 1px solid var(--line); border-radius: 16px;
+    padding: 22px 20px; box-shadow: var(--card-shadow); margin-top: 14px;
+  }
+  .qtext { font-size: 1.15rem; line-height: 1.4; margin-bottom: 16px; font-weight: bold; color: var(--ink); }
+  .opts { display: grid; gap: 10px; }
+  .opt {
+    text-align: left; width: 100%; background: #fff; border: 2px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; font-size: 1rem; font-family: Georgia, serif; cursor: pointer; color: var(--ink);
+  }
+  .opt:hover:not(:disabled) { border-color: var(--wax); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { border-color: var(--green); background: #e9f5ee; color: #245c3c; font-weight: bold; }
+  .opt.wrong { border-color: var(--red); background: #f7e8e6; color: #7e2d2d; text-decoration: line-through; }
+
+  .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: .95rem; line-height: 1.4; }
+  .feedback.good { background: #e9f5ee; border-left: 4px solid var(--green); color: #245c3c; }
+  .feedback.bad { background: #f7e8e6; border-left: 4px solid var(--red); color: #7e2d2d; }
+
+  .nextrow { text-align: right; margin-top: 16px; }
+
+  /* Final */
+  #final { text-align: center; padding-top: 24px; }
+  #final .seal { font-size: 3.4rem; }
+  #final h2 { font-size: 1.9rem; color: var(--wax-dark); margin: 10px 0 6px; }
+  #final .finalscore { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; }
+  #final p.msg { font-size: 1.05rem; color: #4a3b30; max-width: 520px; margin: 0 auto 18px; }
+
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div id="intro">
+    <div class="seal">🖋️</div>
+    <h1>The Pen Name Trail</h1>
+    <p>A solo weekend quest about the women writers who changed English literature: secret pen names, Jane Austen, Virginia Woolf, and the tricks writers use to make their words unforgettable.</p>
+
+    <div class="notebook">
+      <h3>📜 Traveler's Notebook — a few names to know</h3>
+      <ul>
+        <li><b>Pen name / nom de plume:</b> a fictitious name an author writes under.</li>
+        <li><b>Aphra Behn:</b> often called the first woman in England to earn her living as a professional writer.</li>
+        <li><b>Jane Austen:</b> wrote <i>Pride and Prejudice</i> (1813).</li>
+        <li><b>Virginia Woolf:</b> wrote <i>A Room of One's Own</i> (1929); said a woman writer needs money and a room of her own.</li>
+        <li><b>Hypophora:</b> when a writer asks a question and answers it right away.</li>
+      </ul>
+    </div>
+
+    <button class="btn" id="startBtn">Begin the Trail →</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <div id="scorepill">⭐ <span id="scoreNum">0</span>/<span id="scoreTotal">20</span></div>
+    <div id="progress"></div>
+    <div id="stationHeader"></div>
+    <div class="card" id="qCard"></div>
+  </div>
+
+  <div id="final" class="hidden">
+    <div class="seal">🏅</div>
+    <h2 id="finalTitle">Trail Complete!</h2>
+    <div class="finalscore">⭐ <span id="finalScore">0</span> / 20</div>
+    <p class="msg" id="finalMsg"></p>
+    <button class="btn secondary" id="retryBtn">Walk the Trail Again</button>
+  </div>
+
+</div>
+
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const STATIONS = [
+  {
+    title: "Chapter 1 · Secret Names",
+    subtitle: "Hidden identities",
+    icon: "🖋️",
+    questions: [
+      {
+        prompt: "A <i>nom de plume</i> is…",
+        options: ["A feather pen used only by royalty", "The French word for a diary", "A fictitious name a writer publishes under", "A secret identity used only in theatre"],
+        correct: 2,
+        good: "Exactly — a pen name (or pseudonym) hides a writer's real identity.",
+        bad: "Not quite. A <i>nom de plume</i> is a fictitious name a writer publishes under."
+      },
+      {
+        prompt: "The Brontë sisters first published their poems and novels under which pen names?",
+        options: ["Currer, Ellis, and Acton Bell", "Charles, Edward, and Arthur Bell", "George, Henry, and Frank Brown", "Charlotte, Emily, and Anne Browne"],
+        correct: 0,
+        good: "Right! Charlotte = Currer, Emily = Ellis, Anne = Acton — all kept their own first initials.",
+        bad: "Not quite. They wrote as Currer, Ellis, and Acton Bell."
+      },
+      {
+        prompt: "Mary Ann Evans wrote as George Eliot. Which novel was such a hit that she was eventually forced to reveal her real identity?",
+        options: ["Pride and Prejudice", "Jane Eyre", "Wuthering Heights", "Adam Bede"],
+        correct: 3,
+        good: "Correct! Several men even came forward falsely claiming they had written Adam Bede.",
+        bad: "Not quite — it was <i>Adam Bede</i>, a huge success for 'George Eliot.'"
+      },
+      {
+        prompt: "Why did French writer George Sand (Aurore Dupin) sometimes dress as a man?",
+        options: ["To perform in secret plays", "So she could walk freely through Paris and observe city life", "To hide from critics", "To win a bet with Victor Hugo"],
+        correct: 1,
+        good: "Yes — dressed as a man, she could wander the streets of Paris and observe city life freely.",
+        bad: "Not quite. Disguised as a man, she could move freely through Paris and observe city life."
+      }
+    ]
+  },
+  {
+    title: "Chapter 2 · Trailblazers",
+    subtitle: "Breaking the mould",
+    icon: "🔑",
+    questions: [
+      {
+        prompt: "Who is often called the first woman in England to earn her living as a professional writer?",
+        options: ["Jane Austen", "Aphra Behn", "Virginia Woolf", "Charlotte Brontë"],
+        correct: 1,
+        good: "Correct! Aphra Behn wrote plays, novels and poems in 1600s London.",
+        bad: "Not quite — it was Aphra Behn, writing in 17th-century London."
+      },
+      {
+        prompt: "The only known copy of <i>The Book of Margery Kempe</i> turned up in a country house in the 1930s. How was it found?",
+        options: ["It was catalogued in a university library", "It was discovered buried in the garden", "It was found hidden inside a wall", "It fell out of a cupboard during a search for a ping-pong ball"],
+        correct: 3,
+        good: "True story! A game of ping-pong led to one of the earliest known texts by a woman in English.",
+        bad: "Surprisingly — it fell out of a cupboard during a search for a ping-pong ball!"
+      },
+      {
+        prompt: "Aphra Behn began writing professionally mainly to avoid…",
+        options: ["Debtor's prison", "An unwanted marriage", "Life in a convent", "A long sea voyage"],
+        correct: 0,
+        good: "Right — she wrote to save herself from debtor's prison, and became a professional writer.",
+        bad: "Not quite. She was trying to avoid debtor's prison."
+      },
+      {
+        prompt: "<i>The Book of Margery Kempe</i> describes a woman's life in which century?",
+        options: ["The 13th century", "The 19th century", "The 15th century", "The 17th century"],
+        correct: 2,
+        good: "Yes — the fifteenth century, showing Margery challenging the roles expected of women.",
+        bad: "Not quite — it's from the fifteenth century."
+      }
+    ]
+  },
+  {
+    title: "Chapter 3 · Austen's World",
+    subtitle: "Fortune, marriage & wit",
+    icon: "📖",
+    questions: [
+      {
+        prompt: "Finish Austen's famous opening line: “It is a truth universally acknowledged, that a single man in possession of a good fortune, must be in want of a ______.”",
+        options: ["house", "servant", "friend", "wife"],
+        correct: 3,
+        good: "Yes! One of the most famous opening lines in English literature (1813).",
+        bad: "Not quite — the full line ends “…must be in want of a wife.”"
+      },
+      {
+        prompt: "Who has just rented Netherfield Park at the start of <i>Pride and Prejudice</i>?",
+        options: ["Mr Bennet", "Mr Bingley", "Sir William Lucas", "Mr Darcy"],
+        correct: 1,
+        good: "Correct — Mr Bingley: young, single, with a fortune of four or five thousand a year.",
+        bad: "Not quite — it's Mr Bingley who has just rented Netherfield Park."
+      },
+      {
+        prompt: "According to the narrator, what is the real “business” of Mrs Bennet's life?",
+        options: ["Visiting and gossip", "Reading novels", "Getting her daughters married", "Managing the household accounts"],
+        correct: 2,
+        good: "Right — getting her daughters married. Visiting and news were only her 'comfort'!",
+        bad: "Not quite — the narrator says it's getting her daughters married."
+      },
+      {
+        prompt: "Mr Bennet says one daughter has “something more of quickness than her sisters.” Who is he talking about?",
+        options: ["Lizzy (Elizabeth)", "Jane", "Lydia", "Mary"],
+        correct: 0,
+        good: "Yes — Lizzy, the heroine of the novel.",
+        bad: "Not quite — he means Lizzy (Elizabeth), the novel's heroine."
+      }
+    ]
+  },
+  {
+    title: "Chapter 4 · A Room of Her Own",
+    subtitle: "Money, space & voice",
+    icon: "🗝️",
+    questions: [
+      {
+        prompt: "Virginia Woolf wrote that a woman must have money and ______ if she is to write fiction.",
+        options: ["a room of her own", "a famous husband", "a formal education", "a publisher"],
+        correct: 0,
+        good: "Exactly — a room of her own: private space to think and create.",
+        bad: "Not quite — Woolf said money and <b>a room of her own</b>."
+      },
+      {
+        prompt: "How much money a year did Woolf say a woman writer needed, in her famous essay?",
+        options: ["£50", "£5,000", "£500", "£100"],
+        correct: 2,
+        good: "Right — £500 a year. That's why so many classroom games about Woolf use pounds!",
+        bad: "Not quite — Woolf named £500 a year."
+      },
+      {
+        prompt: "In which year was <i>A Room of One's Own</i> published?",
+        options: ["1813", "1929", "1879", "1979"],
+        correct: 1,
+        good: "Yes — 1929. Woolf was a modernist writer and an advocate for women's rights.",
+        bad: "Not quite — it was published in 1929."
+      },
+      {
+        prompt: "Woolf said women should “let flowers fall” on the tomb of which writer, who earned them the right to speak their minds?",
+        options: ["Jane Austen", "Charlotte Brontë", "George Eliot", "Aphra Behn"],
+        correct: 3,
+        good: "Correct — Aphra Behn, the first professional woman writer in English.",
+        bad: "Not quite — Woolf meant Aphra Behn."
+      }
+    ]
+  },
+  {
+    title: "Chapter 5 · The Writer's Craft",
+    subtitle: "Tricks of the trade",
+    icon: "✒️",
+    questions: [
+      {
+        prompt: "A rhetorical question is a question that…",
+        options: ["needs a very long written answer", "doesn't need an answer — it's asked for effect, to make the audience think", "can only be asked by teachers", "only appears in poetry"],
+        correct: 1,
+        good: "Right — writers use rhetorical questions for dramatic effect, or to make the reader think.",
+        bad: "Not quite — it's a question asked for effect, with no answer expected."
+      },
+      {
+        prompt: "When a writer asks a question and then answers it immediately, this technique is called…",
+        options: ["hypophora", "alliteration", "onomatopoeia", "hyperbole"],
+        correct: 0,
+        good: "Correct — hypophora! Question, then straight to the answer.",
+        bad: "Not quite — this technique is called hypophora."
+      },
+      {
+        prompt: "Which sentence is an example of hypophora?",
+        options: ["“The Brontë sisters wrote under pen names.”", "“Will you marry me?” she whispered.", "“The wind howled through the empty house.”", "“Why did women use pen names? Because their work was often judged unfairly.”"],
+        correct: 3,
+        good: "Yes! A question raised and answered right away — that's hypophora.",
+        bad: "Not quite — the last one asks a question and answers it at once."
+      },
+      {
+        prompt: "What is the best reason women writers in the 18th and 19th centuries might have used a pen name?",
+        options: ["To make their books shorter", "To avoid paying printing costs", "So their writing was judged on its own merit, not their gender", "Because publishers required it by law"],
+        correct: 2,
+        good: "Exactly — a pen name let readers judge the work itself, free of prejudice against women writers.",
+        bad: "Not quite — the main reason was so their work was judged fairly, not by their gender."
+      }
+    ]
+  }
+];
+
+let current = 0, score = 0, qIndex = 0, answered = false;
+const totalQuestions = STATIONS.reduce((n, s) => n + s.questions.length, 0);
+
+function flatIndex() {
+  let n = 0;
+  for (let i = 0; i < current; i++) n += STATIONS[i].questions.length;
+  return n + qIndex;
+}
+
+function renderProgress() {
+  const el = document.getElementById("progress");
+  el.innerHTML = "";
+  const done = flatIndex();
+  for (let i = 0; i < totalQuestions; i++) {
+    const d = document.createElement("div");
+    d.className = "dot" + (i < done ? " done" : i === done ? " current" : "");
+    el.appendChild(d);
+  }
+}
+
+function renderStationHeader() {
+  const s = STATIONS[current];
+  document.getElementById("stationHeader").innerHTML =
+    `<div class="icon">${s.icon}</div><h2>${s.title}</h2><p>${s.subtitle}</p>`;
+}
+
+function renderQuestion() {
+  answered = false;
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  document.getElementById("scoreNum").textContent = score;
+  renderProgress();
+  const card = document.getElementById("qCard");
+  card.innerHTML = `
+    <div class="qtext">${q.prompt}</div>
+    <div class="opts" id="opts"></div>
+    <div id="feedbackArea"></div>
+    <div class="nextrow" id="nextRow"></div>
+  `;
+  const optsDiv = document.getElementById("opts");
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.innerHTML = opt;
+    btn.onclick = () => selectAnswer(i);
+    optsDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(i) {
+  if (answered) return;
+  answered = true;
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  const buttons = document.querySelectorAll("#opts .opt");
+  buttons.forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === q.correct) b.classList.add("correct");
+    else if (idx === i && i !== q.correct) b.classList.add("wrong");
+  });
+  const fb = document.getElementById("feedbackArea");
+  if (i === q.correct) {
+    score++;
+    document.getElementById("scoreNum").textContent = score;
+    fb.innerHTML = `<div class="feedback good">✅ ${q.good}</div>`;
+  } else {
+    fb.innerHTML = `<div class="feedback bad">❌ ${q.bad}</div>`;
+  }
+  const isLast = current === STATIONS.length - 1 && qIndex === s.questions.length - 1;
+  document.getElementById("nextRow").innerHTML =
+    `<button class="btn" id="nextBtn">${isLast ? "See Results →" : "Next →"}</button>`;
+  document.getElementById("nextBtn").onclick = advance;
+}
+
+function advance() {
+  const s = STATIONS[current];
+  if (qIndex < s.questions.length - 1) {
+    qIndex++;
+    renderQuestion();
+  } else if (current < STATIONS.length - 1) {
+    current++;
+    qIndex = 0;
+    renderStationHeader();
+    renderQuestion();
+  } else {
+    showFinal();
+  }
+}
+
+function showFinal() {
+  document.getElementById("game").classList.add("hidden");
+  const finalEl = document.getElementById("final");
+  finalEl.classList.remove("hidden");
+  document.getElementById("finalScore").textContent = score;
+  let msg;
+  if (score === totalQuestions) msg = "A perfect trail! You know your pen names, your Austen, and your Woolf inside and out.";
+  else if (score >= totalQuestions * 0.7) msg = "Well done — a strong journey through the trail. A quick look back at any missed questions and you'll have it all.";
+  else msg = "Good first walk down the trail! Have another go — the Traveler's Notebook at the start has useful clues.";
+  document.getElementById("finalMsg").textContent = msg;
+  confetti();
+}
+
+document.getElementById("startBtn").onclick = () => {
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  document.getElementById("scoreTotal").textContent = totalQuestions;
+  renderStationHeader();
+  renderQuestion();
+};
+
+document.getElementById("retryBtn").onclick = () => {
+  current = 0; qIndex = 0; score = 0; answered = false;
+  document.getElementById("final").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  renderStationHeader();
+  renderQuestion();
+};
+
+let confRaf;
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.getElementById("confetti");
+  const ctx = cv.getContext("2d");
+  cv.hidden = false; cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ["#a13d3d", "#b8941f", "#3f8a5e", "#2b1f1a", "#f3e9dc"];
+  const ps = Array.from({ length: 140 }, () => ({
+    x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .6,
+    vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 3,
+    r: Math.random() * 6, s: 5 + Math.random() * 6,
+    c: cols[Math.floor(Math.random() * cols.length)], w: Math.random() * .2
+  }));
+  let f = 0;
+  (function step() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.r += p.w;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    });
+    if (++f < 240) confRaf = requestAnimationFrame(step);
+    else { cancelAnimationFrame(confRaf); cv.hidden = true; }
+  })();
+}
+</script>
+
+</body>
+</html>
