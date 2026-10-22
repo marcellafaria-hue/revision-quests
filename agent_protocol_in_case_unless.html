@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agent Protocol: In Case &amp; Unless</title>
+<style>
+  :root {
+    --ink: #0e141b;
+    --panel: #1a232e;
+    --panel-hi: #223040;
+    --accent: #d99a3d;
+    --accent-dark: #b87c25;
+    --paper: #eef1f5;
+    --muted: #93a2b3;
+    --line: #2e3d4d;
+    --green: #3fbf7a;
+    --red: #e2584c;
+    --card-shadow: 0 18px 40px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    background: radial-gradient(circle at 20% 0%, #182330, #0b1016 65%);
+    color: var(--paper);
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1, h2, h3 { margin: 0; }
+  .hidden { display: none !important; }
+
+  /* Intro */
+  #intro { text-align: center; padding-top: 26px; }
+  #intro .seal { font-size: 3.2rem; }
+  #intro h1 { font-size: clamp(1.7rem, 6vw, 2.4rem); margin: 10px 0 6px; color: var(--accent); letter-spacing: .02em; }
+  #intro p { font-size: 1.02rem; line-height: 1.5; color: var(--muted); max-width: 560px; margin: 0 auto 10px; }
+  .notebook {
+    margin: 22px auto; text-align: left; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px 20px; box-shadow: var(--card-shadow);
+  }
+  .notebook h3 { color: var(--accent); font-size: 1.02rem; margin-bottom: 8px; }
+  .notebook ul { margin: 0; padding-left: 20px; line-height: 1.65; font-size: .93rem; color: var(--paper); }
+  .notebook li b { color: var(--accent); }
+  .btn {
+    display: inline-block; margin-top: 14px; padding: 13px 30px; border: none; border-radius: 999px;
+    background: var(--accent); color: #1a1205; font-size: 1.02rem; font-weight: bold; cursor: pointer;
+    box-shadow: var(--card-shadow);
+  }
+  .btn:hover { background: var(--accent-dark); }
+  .btn.secondary { background: transparent; color: var(--accent); border: 2px solid var(--accent); box-shadow: none; }
+
+  /* Progress */
+  #progress { display: flex; justify-content: center; gap: 7px; margin: 18px 0 6px; flex-wrap: wrap; }
+  .dot { width: 13px; height: 13px; border-radius: 50%; background: var(--line); border: 2px solid var(--line); }
+  .dot.done { background: var(--green); border-color: var(--green); }
+  .dot.current { background: var(--accent); border-color: var(--accent-dark); }
+
+  #scorepill { text-align: center; font-size: .95rem; font-weight: bold; color: var(--accent); margin-bottom: 6px; }
+
+  /* Station header */
+  #stationHeader { text-align: center; margin-bottom: 10px; }
+  #stationHeader .icon { font-size: 2.1rem; }
+  #stationHeader h2 { font-size: 1.22rem; color: var(--accent); margin-top: 4px; }
+  #stationHeader p { font-size: .88rem; color: var(--muted); margin: 2px 0 0; font-style: italic; }
+
+  /* Card */
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 22px 20px; box-shadow: var(--card-shadow); margin-top: 14px;
+  }
+  .qtext { font-size: 1.1rem; line-height: 1.4; margin-bottom: 16px; font-weight: bold; color: var(--paper); }
+  .opts { display: grid; gap: 10px; }
+  .opt {
+    text-align: left; width: 100%; background: var(--panel-hi); border: 2px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; font-size: .98rem; font-family: inherit; cursor: pointer; color: var(--paper);
+  }
+  .opt:hover:not(:disabled) { border-color: var(--accent); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { border-color: var(--green); background: rgba(63,191,122,.18); color: #bdf4d4; font-weight: bold; }
+  .opt.wrong { border-color: var(--red); background: rgba(226,88,76,.18); color: #f5c6c1; text-decoration: line-through; }
+
+  .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: .93rem; line-height: 1.4; }
+  .feedback.good { background: rgba(63,191,122,.14); border-left: 4px solid var(--green); color: #bdf4d4; }
+  .feedback.bad { background: rgba(226,88,76,.14); border-left: 4px solid var(--red); color: #f5c6c1; }
+
+  .nextrow { text-align: right; margin-top: 16px; }
+
+  /* Final */
+  #final { text-align: center; padding-top: 24px; }
+  #final .seal { font-size: 3.4rem; }
+  #final h2 { font-size: 1.8rem; color: var(--accent); margin: 10px 0 6px; }
+  #final .finalscore { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; }
+  #final p.msg { font-size: 1.02rem; color: var(--muted); max-width: 520px; margin: 0 auto 18px; }
+
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div id="intro">
+    <div class="seal">🕵️</div>
+    <h1>Agent Protocol: In Case &amp; Unless</h1>
+    <p>A solo weekend mission to sharpen two tricky structures: <b>in case</b> (preparing now for something that might happen later) and <b>unless / as long as / provided / providing</b> (talking about conditions). Complete all briefings to finish the mission.</p>
+
+    <div class="notebook">
+      <h3>🎒 Field Manual — quick reference</h3>
+      <ul>
+        <li><b>in case</b> something happens = because it's possible it will happen. You act <i>now</i>, before you know. <br><i>I'll take a map in case I get lost.</i></li>
+        <li><b>in case of</b> + noun = used on signs/notices. <i>In case of fire, use the stairs.</i></li>
+        <li>No <b>will</b> after in case, unless, as long as, provided or providing — use a present tense even for the future.</li>
+        <li><b>unless</b> = except if. <i>You can't go in unless you're a member.</i></li>
+        <li><b>as long as / so long as / provided (that) / providing (that)</b> = if, on condition that. <i>You can borrow my car as long as you drive carefully.</i></li>
+      </ul>
+    </div>
+
+    <button class="btn" id="startBtn">Accept the Mission →</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <div id="scorepill">⭐ <span id="scoreNum">0</span>/<span id="scoreTotal">20</span></div>
+    <div id="progress"></div>
+    <div id="stationHeader"></div>
+    <div class="card" id="qCard"></div>
+  </div>
+
+  <div id="final" class="hidden">
+    <div class="seal">🎖️</div>
+    <h2 id="finalTitle">Mission Complete!</h2>
+    <div class="finalscore">⭐ <span id="finalScore">0</span> / 20</div>
+    <p class="msg" id="finalMsg"></p>
+    <button class="btn secondary" id="retryBtn">Run the Mission Again</button>
+  </div>
+
+</div>
+
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const STATIONS = [
+  {
+    title: "Briefing 1 · Packing the Bag",
+    subtitle: "Before you leave headquarters",
+    icon: "🎒",
+    questions: [
+      {
+        prompt: "You don't know if it will rain, but you decide to pack an umbrella now, just to be safe. Which sentence is correct?",
+        options: [
+          "I'll take an umbrella in case it rains.",
+          "I'll take an umbrella if it rains.",
+          "I'll take an umbrella unless it rains.",
+          "I'll take an umbrella provided it rains."
+        ],
+        correct: 0,
+        good: "Exactly — you take the umbrella now, before you know if it will rain: that's <b>in case</b>.",
+        bad: "Not quite — since you're preparing now for something that might happen later, this needs <b>in case</b>, not if / unless / provided."
+      },
+      {
+        prompt: "Complete: “You can't go in ______ you are a member.”",
+        options: ["if", "unless", "because", "provided"],
+        correct: 1,
+        good: "Right — <b>unless</b> = except if. You can't go in, except if you're a member.",
+        bad: "Not quite — the word needed is <b>unless</b> (= except if)."
+      },
+      {
+        prompt: "Which sign uses the grammar correctly?",
+        options: [
+          "In case there is a fire, please leave the building.",
+          "If of fire, please leave the building.",
+          "In case of fire, please leave the building.",
+          "Unless of fire, please leave the building."
+        ],
+        correct: 2,
+        good: "Yes — <b>in case of</b> + noun is the pattern used on signs and notices.",
+        bad: "Not quite — notices use <b>in case of</b> + noun, e.g. “in case of fire.”"
+      },
+      {
+        prompt: "Complete: “Children are allowed to use the pool ______ they are with an adult.” (= only if they're with an adult)",
+        options: ["unless", "because", "if not", "provided"],
+        correct: 3,
+        good: "Correct — <b>provided</b> (= on condition that) fits: they can use the pool only on that condition.",
+        bad: "Not quite — <b>provided</b> (on condition that) is needed here."
+      },
+      {
+        prompt: "“I gave him my phone number ______ he needed to contact me.” (= because it was possible he'd need to)",
+        options: ["unless", "in case", "provided", "if"],
+        correct: 1,
+        good: "Right — <b>in case</b> + past explains why you did something, because it was possible.",
+        bad: "Not quite — <b>in case</b> explains why you did it, because it was possible he'd need to contact you."
+      }
+    ]
+  },
+  {
+    title: "Briefing 2 · Contingency Plans",
+    subtitle: "Preparing for what might happen",
+    icon: "🗺️",
+    questions: [
+      {
+        prompt: "Which sentence is correct?",
+        options: [
+          "I'll write down my password in case I forget it.",
+          "I'll write down my password in case I will forget it.",
+          "I'll write down my password unless I forget it.",
+          "I'll write down my password if I will forget it."
+        ],
+        correct: 0,
+        good: "Yes — we never use <b>will</b> after in case. Present tense only.",
+        bad: "Not quite — we don't use <b>will</b> after 'in case'; the correct form is “in case I forget it.”"
+      },
+      {
+        prompt: "Which sentence means the same as: “Listen carefully, or you won't know what to do”?",
+        options: [
+          "You'll know what to do if you listen carefully.",
+          "You won't know what to do if you listen carefully.",
+          "You'll know what to do unless you listen carefully.",
+          "You won't know what to do unless you listen carefully."
+        ],
+        correct: 3,
+        good: "Exactly — “unless you listen carefully” = except if you listen carefully, you won't know what to do.",
+        bad: "Not quite — the correct rewrite is: “You won't know what to do unless you listen carefully.”"
+      },
+      {
+        prompt: "Complete: “You can borrow my car ______ you promise not to drive too fast.”",
+        options: ["unless", "because", "as long as", "in case"],
+        correct: 2,
+        good: "Right — <b>as long as</b> (= on condition that) fits: you can borrow it, but only on that condition.",
+        bad: "Not quite — <b>as long as</b> (on condition that) is the natural fit here."
+      },
+      {
+        prompt: "Complete: “We're going to the beach tomorrow ______ the weather is bad.” (= except if it's bad)",
+        options: ["providing", "as long as", "unless", "because"],
+        correct: 2,
+        good: "Yes — <b>unless</b> = except if. We're going, except if the weather turns out bad.",
+        bad: "Not quite — <b>unless</b> (= except if) is needed: we go, except if the weather is bad."
+      },
+      {
+        prompt: "“We'll buy some more food in case Tom comes.” What does this mean?",
+        options: [
+          "We'll only buy food if Tom actually comes.",
+          "We won't buy any food unless Tom comes.",
+          "We'll ask Tom to bring food if he comes.",
+          "We're buying food now, whether Tom comes or not, so we'll already have it if he does."
+        ],
+        correct: 3,
+        good: "Exactly — with <b>in case</b>, we act now, before knowing if it will happen.",
+        bad: "Not quite — <b>in case</b> means we prepare now, regardless of whether Tom actually comes."
+      }
+    ]
+  },
+  {
+    title: "Briefing 3 · Mission Conditions",
+    subtitle: "What has to be true first",
+    icon: "📋",
+    questions: [
+      {
+        prompt: "You think you have everything on your shopping list, but maybe you forgot something. Your friend has the list. What do you say?",
+        options: [
+          "Can you check the list in case I've forgotten something?",
+          "Can you check the list if I've forgotten something?",
+          "Can you check the list unless I've forgotten something?",
+          "Can you check the list provided I've forgotten something?"
+        ],
+        correct: 0,
+        good: "Right — you check now, <b>in case</b> (= because it's possible) you forgot something.",
+        bad: "Not quite — <b>in case</b> fits: you check now because it's possible you forgot something."
+      },
+      {
+        prompt: "Complete: “Ben isn't very talkative. He wouldn't complain about something ______ it was really bad.”",
+        options: ["if", "unless", "provided", "because"],
+        correct: 1,
+        good: "Correct — <b>unless</b> = except if: he wouldn't complain, except if it was really bad.",
+        bad: "Not quite — <b>unless</b> (except if) fits here."
+      },
+      {
+        prompt: "Complete: “______ the room is clean, I don't mind which hotel we stay at.” (= the room must be clean, but otherwise I don't mind)",
+        options: ["Unless", "If not", "Because", "Provided"],
+        correct: 3,
+        good: "Yes — <b>provided (that)</b> = on condition that. The room must be clean; otherwise, no preference.",
+        bad: "Not quite — <b>provided (that)</b> is the natural fit: on condition the room is clean."
+      },
+      {
+        prompt: "Which sentence is correct?",
+        options: [
+          "I'm not going out unless it will stop raining.",
+          "Providing the weather will be good, we're going to have a picnic.",
+          "I'm not going out unless it stops raining.",
+          "Unless it will stop raining, I'm not going out."
+        ],
+        correct: 2,
+        good: "Right — like 'in case', we don't use <b>will</b> after unless / provided / as long as. Present tense only.",
+        bad: "Not quite — we don't use <b>will</b> after unless; the correct form is “unless it stops raining.”"
+      },
+      {
+        prompt: "Which is correct?",
+        options: [
+          "In case fire, call this number.",
+          "In case of emergency, call this number.",
+          "In emergency case, call this number.",
+          "If of emergency, call this number."
+        ],
+        correct: 1,
+        good: "Exactly — <b>in case of</b> + noun, used on notices and instructions.",
+        bad: "Not quite — the correct pattern is <b>in case of</b> + noun, e.g. “in case of emergency.”"
+      }
+    ]
+  },
+  {
+    title: "Final Briefing · Command Debrief",
+    subtitle: "Prove you've got it",
+    icon: "🎖️",
+    questions: [
+      {
+        prompt: "Which sentence means the same as: “She must apologise to me, or I'll never speak to her again”?",
+        options: [
+          "I'll never speak to her again unless she apologises to me.",
+          "I'll speak to her again unless she apologises to me.",
+          "She must apologise to me if I speak to her again.",
+          "I'll speak to her again if she doesn't apologise to me."
+        ],
+        correct: 0,
+        good: "Yes — “unless she apologises” = except if she apologises, I'll never speak to her again.",
+        bad: "Not quite — the correct rewrite is: “I'll never speak to her again unless she apologises to me.”"
+      },
+      {
+        prompt: "You draw a map for Sarah because it's possible she'll have trouble finding your house. What do you say?",
+        options: [
+          "I drew a map for Sarah in case she had a problem finding our house.",
+          "I drew a map for Sarah if she had a problem finding our house.",
+          "I drew a map for Sarah unless she had a problem finding our house.",
+          "I drew a map for Sarah provided she had a problem finding our house."
+        ],
+        correct: 0,
+        good: "Right — <b>in case</b> + past explains the reason you did it, because it was possible.",
+        bad: "Not quite — <b>in case</b> explains the reason: because it was possible she'd have trouble."
+      },
+      {
+        prompt: "Which sentence makes the most sense?",
+        options: [
+          "I like hot weather unless it isn't too humid.",
+          "I like hot weather as long as it isn't too humid.",
+          "I like hot weather in case it isn't too humid.",
+          "I like hot weather if not it isn't too humid."
+        ],
+        correct: 1,
+        good: "Exactly — <b>as long as</b> (= on condition that) is the natural choice for a personal preference with a condition.",
+        bad: "Not quite — <b>as long as</b> (on condition that) is the natural fit here."
+      },
+      {
+        prompt: "Complete: “We can sit here in the corner ______ you'd rather sit by the window.”",
+        options: ["as long as", "provided", "unless", "because"],
+        correct: 2,
+        good: "Right — <b>unless</b> = except if: we'll sit here, except if you'd prefer the window.",
+        bad: "Not quite — <b>unless</b> (except if) fits: we'll sit here, except if you prefer the window."
+      },
+      {
+        prompt: "Which best describes the difference between in case and if?",
+        options: [
+          "They always mean exactly the same thing.",
+          "In case is only used in the past; if is only used in the future.",
+          "If is used for reasons; in case is used for results.",
+          "With in case, you act now because something might happen later; with if, you act only after it actually happens."
+        ],
+        correct: 3,
+        good: "Exactly! That's the key difference between in case and if.",
+        bad: "Not quite — the key difference: with <b>in case</b> you prepare now for something that might happen; with <b>if</b> you act only once it actually happens."
+      }
+    ]
+  }
+];
+
+let current = 0, score = 0, qIndex = 0, answered = false;
+const totalQuestions = STATIONS.reduce((n, s) => n + s.questions.length, 0);
+
+function flatIndex() {
+  let n = 0;
+  for (let i = 0; i < current; i++) n += STATIONS[i].questions.length;
+  return n + qIndex;
+}
+
+function renderProgress() {
+  const el = document.getElementById("progress");
+  el.innerHTML = "";
+  const done = flatIndex();
+  for (let i = 0; i < totalQuestions; i++) {
+    const d = document.createElement("div");
+    d.className = "dot" + (i < done ? " done" : i === done ? " current" : "");
+    el.appendChild(d);
+  }
+}
+
+function renderStationHeader() {
+  const s = STATIONS[current];
+  document.getElementById("stationHeader").innerHTML =
+    `<div class="icon">${s.icon}</div><h2>${s.title}</h2><p>${s.subtitle}</p>`;
+}
+
+function renderQuestion() {
+  answered = false;
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  document.getElementById("scoreNum").textContent = score;
+  renderProgress();
+  const card = document.getElementById("qCard");
+  card.innerHTML = `
+    <div class="qtext">${q.prompt}</div>
+    <div class="opts" id="opts"></div>
+    <div id="feedbackArea"></div>
+    <div class="nextrow" id="nextRow"></div>
+  `;
+  const optsDiv = document.getElementById("opts");
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.innerHTML = opt;
+    btn.onclick = () => selectAnswer(i);
+    optsDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(i) {
+  if (answered) return;
+  answered = true;
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  const buttons = document.querySelectorAll("#opts .opt");
+  buttons.forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === q.correct) b.classList.add("correct");
+    else if (idx === i && i !== q.correct) b.classList.add("wrong");
+  });
+  const fb = document.getElementById("feedbackArea");
+  if (i === q.correct) {
+    score++;
+    document.getElementById("scoreNum").textContent = score;
+    fb.innerHTML = `<div class="feedback good">✅ ${q.good}</div>`;
+  } else {
+    fb.innerHTML = `<div class="feedback bad">❌ ${q.bad}</div>`;
+  }
+  const isLast = current === STATIONS.length - 1 && qIndex === s.questions.length - 1;
+  document.getElementById("nextRow").innerHTML =
+    `<button class="btn" id="nextBtn">${isLast ? "See Results →" : "Next →"}</button>`;
+  document.getElementById("nextBtn").onclick = advance;
+}
+
+function advance() {
+  const s = STATIONS[current];
+  if (qIndex < s.questions.length - 1) {
+    qIndex++;
+    renderQuestion();
+  } else if (current < STATIONS.length - 1) {
+    current++;
+    qIndex = 0;
+    renderStationHeader();
+    renderQuestion();
+  } else {
+    showFinal();
+  }
+}
+
+function showFinal() {
+  document.getElementById("game").classList.add("hidden");
+  const finalEl = document.getElementById("final");
+  finalEl.classList.remove("hidden");
+  document.getElementById("finalScore").textContent = score;
+  let msg;
+  if (score === totalQuestions) msg = "Perfect mission! You've fully mastered in case and unless / as long as / provided / providing.";
+  else if (score >= totalQuestions * 0.7) msg = "Strong mission report — you've got a solid handle on these structures. A quick look back at any missed items and you'll be fully field-ready.";
+  else msg = "Good first run! Check the Field Manual at the start again, then try the mission once more.";
+  document.getElementById("finalMsg").textContent = msg;
+  confetti();
+}
+
+document.getElementById("startBtn").onclick = () => {
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  document.getElementById("scoreTotal").textContent = totalQuestions;
+  renderStationHeader();
+  renderQuestion();
+};
+
+document.getElementById("retryBtn").onclick = () => {
+  current = 0; qIndex = 0; score = 0; answered = false;
+  document.getElementById("final").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  renderStationHeader();
+  renderQuestion();
+};
+
+let confRaf;
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.getElementById("confetti");
+  const ctx = cv.getContext("2d");
+  cv.hidden = false; cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ["#d99a3d", "#3fbf7a", "#e2584c", "#eef1f5", "#93a2b3"];
+  const ps = Array.from({ length: 140 }, () => ({
+    x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .6,
+    vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 3,
+    r: Math.random() * 6, s: 5 + Math.random() * 6,
+    c: cols[Math.floor(Math.random() * cols.length)], w: Math.random() * .2
+  }));
+  let f = 0;
+  (function step() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.r += p.w;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    });
+    if (++f < 240) confRaf = requestAnimationFrame(step);
+    else { cancelAnimationFrame(confRaf); cv.hidden = true; }
+  })();
+}
+</script>
+
+</body>
+</html>
