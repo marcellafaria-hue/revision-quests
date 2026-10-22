@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Letter to Grade 8: Winter Reflection Journey</title>
+<style>
+  :root {
+    --night: #0b1a33;
+    --night2: #122747;
+    --gold: #f4c95d;
+    --gold-dark: #d1a53d;
+    --red: #c23b3b;
+    --green: #2f6b4f;
+    --snow: #fdfaf3;
+    --muted: #a9b9d6;
+    --line: #26406b;
+    --card-shadow: 0 18px 40px rgba(0,0,0,.4);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: radial-gradient(ellipse at top, #16305a, var(--night) 70%);
+    color: var(--snow);
+    position: relative;
+    overflow-x: hidden;
+  }
+  .wrap { max-width: 700px; margin: 0 auto; padding: 28px 18px 70px; position: relative; z-index: 2; }
+  h1, h2, h3 { margin: 0; }
+  .hidden { display: none !important; }
+
+  #snowCanvas { position: fixed; inset: 0; z-index: 1; pointer-events: none; }
+
+  /* Intro */
+  #intro { text-align: center; padding-top: 20px; }
+  #intro .seal { font-size: 3.4rem; }
+  #intro h1 { font-size: clamp(1.6rem, 6vw, 2.3rem); margin: 10px 0 8px; color: var(--gold); line-height: 1.25; }
+  #intro p { font-size: 1.02rem; line-height: 1.55; color: var(--muted); max-width: 540px; margin: 0 auto 10px; }
+  .notebook {
+    margin: 22px auto; text-align: left; background: var(--night2); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px 20px; box-shadow: var(--card-shadow);
+  }
+  .notebook h3 { color: var(--gold); font-size: 1rem; margin-bottom: 8px; }
+  .notebook p { margin: 0; font-size: .95rem; line-height: 1.6; color: var(--snow); }
+  .btn {
+    display: inline-block; margin-top: 16px; padding: 13px 30px; border: none; border-radius: 999px;
+    background: var(--red); color: #fff; font-size: 1.04rem; font-weight: bold; cursor: pointer;
+    font-family: Georgia, serif; box-shadow: var(--card-shadow);
+  }
+  .btn:hover { background: #a62f2f; }
+  .btn.secondary { background: transparent; color: var(--gold); border: 2px solid var(--gold); box-shadow: none; }
+  .btn.gold { background: var(--gold); color: #3b2a07; }
+  .btn.gold:hover { background: var(--gold-dark); }
+
+  /* Ornament progress */
+  #ornaments { display: flex; justify-content: center; gap: 14px; margin: 20px 0 8px; flex-wrap: wrap; }
+  .orn { font-size: 1.6rem; opacity: .35; filter: grayscale(1); transition: opacity .3s, filter .3s, transform .3s; }
+  .orn.done { opacity: 1; filter: grayscale(0); transform: scale(1.15); }
+  .orn.current { opacity: 1; filter: grayscale(0); }
+
+  /* Station header */
+  #stationHeader { text-align: center; margin-bottom: 8px; }
+  #stationHeader .icon { font-size: 2.2rem; }
+  #stationHeader h2 { font-size: 1.28rem; color: var(--gold); margin-top: 4px; }
+  #stationHeader p { font-size: .9rem; color: var(--muted); margin: 2px 0 0; font-style: italic; }
+
+  /* Card */
+  .card {
+    background: var(--night2); border: 1px solid var(--line); border-radius: 16px;
+    padding: 22px 20px; box-shadow: var(--card-shadow); margin-top: 14px;
+  }
+  .prompt { margin-bottom: 18px; }
+  .prompt:last-child { margin-bottom: 0; }
+  .prompt label { display: block; font-size: 1.05rem; font-weight: bold; color: var(--snow); margin-bottom: 8px; line-height: 1.4; }
+  .prompt textarea {
+    width: 100%; min-height: 80px; border-radius: 10px; border: 2px solid var(--line);
+    background: #0d2040; color: var(--snow); font-family: Georgia, serif; font-size: .98rem;
+    padding: 10px 12px; resize: vertical;
+  }
+  .prompt textarea:focus { outline: none; border-color: var(--gold); }
+  .prompt textarea::placeholder { color: #5b6f94; }
+
+  .navrow { display: flex; justify-content: space-between; margin-top: 18px; gap: 10px; flex-wrap: wrap; }
+  .navrow .btn.secondary { margin-top: 0; }
+
+  /* Final */
+  #final { text-align: center; padding-top: 18px; }
+  #final .seal { font-size: 3.4rem; }
+  #final h2 { font-size: 1.85rem; color: var(--gold); margin: 10px 0 8px; }
+  #final p.msg { font-size: 1.04rem; color: var(--muted); max-width: 540px; margin: 0 auto 18px; line-height: 1.55; }
+  #final .actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+  .tree { font-size: 2.4rem; margin: 14px 0; letter-spacing: 4px; }
+
+  @media (max-width: 480px) { .orn { font-size: 1.3rem; } }
+</style>
+</head>
+<body>
+
+<canvas id="snowCanvas"></canvas>
+
+<div class="wrap">
+
+  <div id="intro">
+    <div class="seal">🎄</div>
+    <h1>A Letter to Grade 8<br>Winter Reflection Journey</h1>
+    <p>Grade 7 is almost over! Before the holidays, take a few quiet minutes to look back on your year and write a few words to the Grade 8 student you're about to become.</p>
+
+    <div class="notebook">
+      <h3>🌟 Before you begin</h3>
+      <p>There are no right or wrong answers here — this is just for you. Write whatever feels true. At the end, you can download your reflection and keep it, or print it, to read again whenever you like.</p>
+    </div>
+
+    <button class="btn" id="startBtn">Begin the Journey →</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <div id="ornaments"></div>
+    <div id="stationHeader"></div>
+    <div class="card" id="qCard"></div>
+  </div>
+
+  <div id="final" class="hidden">
+    <div class="seal">🎁</div>
+    <h2>Happy Holidays!</h2>
+    <div class="tree">🎄🎁✨</div>
+    <p class="msg">You've completed your Grade 7 time capsule. Keep this reflection somewhere safe — maybe open it again at the end of Grade 8 and see how far you've come. Have a wonderful holiday, and welcome to Grade 8. We're proud of you!</p>
+    <div class="actions">
+      <button class="btn gold" id="downloadBtn">⬇️ Download My Reflection</button>
+      <button class="btn secondary" id="retryBtn">Start Over</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const STATIONS = [
+  {
+    title: "Opening the Year",
+    subtitle: "Your Grade 7 highlights",
+    icon: "🎁",
+    prompts: [
+      { id: "memory", label: "What's one memory from this year that made you smile? (a class, a friend, a moment)", placeholder: "Take your time…" },
+      { id: "proud", label: "What's something you're proud you did this year — big or small?", placeholder: "It doesn't have to be a big achievement…" }
+    ]
+  },
+  {
+    title: "Lessons Under the Tree",
+    subtitle: "What this year taught you",
+    icon: "🎄",
+    prompts: [
+      { id: "learnedSelf", label: "What's one thing you learned about yourself this year?", placeholder: "Maybe about how you work, how you make friends, what you enjoy…" },
+      { id: "challenge", label: "What was a challenge you faced this year, and how did you handle it?", placeholder: "It's okay if it's still something you're working on…" },
+      { id: "englishClass", label: "What's one thing from English class this year you want to remember or use again?", placeholder: "A book, a skill, a game, a word, anything…" }
+    ]
+  },
+  {
+    title: "Wishes for the New Year",
+    subtitle: "Setting your sights on Grade 8",
+    icon: "⭐",
+    prompts: [
+      { id: "doBetter", label: "What's one thing you'd like to do better in Grade 8?", placeholder: "Be honest — this is just for you…" },
+      { id: "goal", label: "What's a goal you have for next year? It can be about school, friendships, a hobby, or just for fun.", placeholder: "Dream a little…" },
+      { id: "advice", label: "If you could give your Grade 8 self one piece of advice, what would it be?", placeholder: "What would you want yourself to remember?" }
+    ]
+  },
+  {
+    title: "A Letter to Future You",
+    subtitle: "Seal it until next year",
+    icon: "✉️",
+    prompts: [
+      { id: "letter", label: "Write a short letter to yourself, to read again at the end of Grade 8. What do you want to remember about who you are right now?", placeholder: "Dear future me…", big: true }
+    ]
+  }
+];
+
+const answers = {};
+let current = 0;
+
+function flatPromptCount(upTo) {
+  let n = 0;
+  for (let i = 0; i < upTo; i++) n += STATIONS[i].prompts.length;
+  return n;
+}
+
+function renderOrnaments() {
+  const el = document.getElementById("ornaments");
+  el.innerHTML = "";
+  const icons = ["🎁", "🔔", "⭐", "🕯️"];
+  STATIONS.forEach((s, i) => {
+    const span = document.createElement("span");
+    span.className = "orn" + (i < current ? " done" : i === current ? " current" : "");
+    span.textContent = icons[i % icons.length];
+    el.appendChild(span);
+  });
+}
+
+function renderStationHeader() {
+  const s = STATIONS[current];
+  document.getElementById("stationHeader").innerHTML =
+    `<div class="icon">${s.icon}</div><h2>${s.title}</h2><p>${s.subtitle}</p>`;
+}
+
+function renderStation() {
+  renderOrnaments();
+  renderStationHeader();
+  const s = STATIONS[current];
+  const card = document.getElementById("qCard");
+  let html = "";
+  s.prompts.forEach(p => {
+    const val = answers[p.id] || "";
+    html += `
+      <div class="prompt">
+        <label for="${p.id}">${p.label}</label>
+        <textarea id="${p.id}" placeholder="${p.placeholder}" style="${p.big ? "min-height:140px" : ""}">${val}</textarea>
+      </div>`;
+  });
+  const isFirst = current === 0;
+  const isLast = current === STATIONS.length - 1;
+  html += `
+    <div class="navrow">
+      <button class="btn secondary" id="backBtn" ${isFirst ? "disabled style='visibility:hidden'" : ""}>← Back</button>
+      <button class="btn" id="nextBtn">${isLast ? "Finish →" : "Next →"}</button>
+    </div>`;
+  card.innerHTML = html;
+
+  s.prompts.forEach(p => {
+    document.getElementById(p.id).addEventListener("input", e => {
+      answers[p.id] = e.target.value;
+    });
+  });
+
+  if (!isFirst) document.getElementById("backBtn").onclick = () => { current--; renderStation(); };
+  document.getElementById("nextBtn").onclick = () => {
+    if (isLast) { showFinal(); } else { current++; renderStation(); }
+  };
+}
+
+function showFinal() {
+  document.getElementById("game").classList.add("hidden");
+  document.getElementById("final").classList.remove("hidden");
+  snowBurst();
+}
+
+document.getElementById("startBtn").onclick = () => {
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  renderStation();
+};
+
+document.getElementById("retryBtn").onclick = () => {
+  current = 0;
+  for (const k in answers) delete answers[k];
+  document.getElementById("final").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  renderStation();
+};
+
+document.getElementById("downloadBtn").onclick = () => {
+  const lines = [];
+  lines.push("MY GRADE 7 TIME CAPSULE");
+  lines.push("A Letter to Grade 8 — Winter Reflection Journey");
+  lines.push("=".repeat(44));
+  lines.push("");
+  STATIONS.forEach(s => {
+    lines.push(`${s.icon}  ${s.title.toUpperCase()}`);
+    lines.push("-".repeat(32));
+    s.prompts.forEach(p => {
+      lines.push(p.label);
+      lines.push((answers[p.id] && answers[p.id].trim()) ? answers[p.id].trim() : "(left blank)");
+      lines.push("");
+    });
+  });
+  lines.push("Happy holidays — see you in Grade 8! 🎄");
+  const text = lines.join("\n");
+  const blob = new Blob([text], { type: "text/plain;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "my-grade7-time-capsule.txt";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+/* Snow */
+const canvas = document.getElementById("snowCanvas");
+const ctx = canvas.getContext("2d");
+let flakes = [];
+function resize() { canvas.width = innerWidth; canvas.height = innerHeight; }
+window.addEventListener("resize", resize);
+resize();
+function initFlakes() {
+  const n = Math.min(70, Math.floor(innerWidth / 14));
+  flakes = Array.from({ length: n }, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: 1 + Math.random() * 2.6,
+    vy: .4 + Math.random() * .9,
+    vx: (Math.random() - .5) * .4,
+    o: .3 + Math.random() * .6
+  }));
+}
+initFlakes();
+function drawSnow() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    flakes.forEach(f => {
+      f.y += f.vy; f.x += f.vx;
+      if (f.y > canvas.height) { f.y = -5; f.x = Math.random() * canvas.width; }
+      if (f.x > canvas.width) f.x = 0;
+      if (f.x < 0) f.x = canvas.width;
+      ctx.beginPath();
+      ctx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(253,250,243,${f.o})`;
+      ctx.fill();
+    });
+  }
+  requestAnimationFrame(drawSnow);
+}
+drawSnow();
+
+let burstRaf;
+function snowBurst() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cols = ["#f4c95d", "#c23b3b", "#2f6b4f", "#fdfaf3"];
+  const extra = Array.from({ length: 90 }, () => ({
+    x: Math.random() * canvas.width, y: -20 - Math.random() * canvas.height * .4,
+    vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 3,
+    r: Math.random() * 6, s: 4 + Math.random() * 5,
+    c: cols[Math.floor(Math.random() * cols.length)], rot: Math.random() * .2
+  }));
+  let f = 0;
+  (function step() {
+    extra.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += .05;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    });
+    if (++f < 150) burstRaf = requestAnimationFrame(step);
+  })();
+}
+</script>
+
+</body>
+</html>
