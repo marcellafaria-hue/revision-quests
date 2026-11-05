@@ -1,0 +1,484 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Return to Sender</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=Courier+Prime:wght@400;700&display=swap">
+<style>
+/* Layout: an airmail envelope. Striped airmail band under the header, a board of envelopes (one column per topic, four levels deep), a full-screen "opened letter" for each challenge. */
+:root{
+  --paper:#EBEFF4; --card:#FBFCFE; --ink:#16213A; --muted:#58637A; --line:#C9D2DE;
+  --red:#C3303B; --blue:#2447A3; --good:#1D7A4C; --bad:#B42318; --gold:#A86A00;
+  --shade:rgba(22,33,58,.08);
+  --f-display:"Bricolage Grotesque", "Arial Black", system-ui, sans-serif;
+  --f-body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --f-type:"Courier Prime", "Courier New", ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --paper:#0E1525; --card:#172139; --ink:#E7ECF4; --muted:#9BA7BE; --line:#2C3A5A;
+  --red:#F2646E; --blue:#91AAFF; --good:#5BD39A; --bad:#FF8A80; --gold:#F3B94A;
+  --shade:rgba(0,0,0,.35); color-scheme:dark }}
+:root[data-theme="dark"]{
+  --paper:#0E1525; --card:#172139; --ink:#E7ECF4; --muted:#9BA7BE; --line:#2C3A5A;
+  --red:#F2646E; --blue:#91AAFF; --good:#5BD39A; --bad:#FF8A80; --gold:#F3B94A;
+  --shade:rgba(0,0,0,.35); color-scheme:dark }
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.5}
+.wrap{max-width:1400px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+
+header{background:var(--card);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 24px;padding-block:20px 16px}
+.brand h1{font-family:var(--f-display);font-weight:800;font-size:clamp(2rem,4.5vw,3.4rem);line-height:.95;letter-spacing:-.02em;margin:0;text-wrap:balance}
+.brand h1 span{color:var(--red)}
+.brand p{margin:6px 0 0;font-family:var(--f-type);color:var(--muted);font-size:.95rem}
+.airmail{height:10px;background:repeating-linear-gradient(135deg,var(--red) 0 16px,var(--card) 16px 26px,var(--blue) 26px 42px,var(--card) 42px 52px)}
+.btn{border:1.5px solid var(--ink);background:transparent;border-radius:6px;padding:8px 14px;font-weight:700;font-size:.95rem}
+.btn:hover{background:var(--shade)}
+.btn.solid{background:var(--ink);color:var(--card)}
+.btn.solid:hover{opacity:.9}
+
+details.rules{background:var(--card);border:1px dashed var(--line);border-radius:8px;padding:10px 14px;margin:16px 0}
+details.rules summary{cursor:pointer;font-weight:700}
+details.rules ul{margin:8px 0 2px;padding-left:20px;display:grid;gap:4px;max-width:90ch}
+
+.board-scroll{overflow-x:auto;padding-bottom:8px}
+.board{display:grid;grid-template-columns:repeat(7,minmax(150px,1fr));gap:10px;min-width:1090px}
+.cat{background:var(--ink);color:var(--card);border-radius:8px;padding:10px 10px 12px;min-height:92px;display:flex;flex-direction:column;justify-content:flex-end}
+.cat b{font-family:var(--f-display);font-size:1.15rem;line-height:1.1}
+.cat small{font-family:var(--f-type);opacity:.8;font-size:.78rem;margin-top:4px;line-height:1.25}
+.env{position:relative;aspect-ratio:1.55;border:1px solid var(--line);background:var(--card);border-radius:6px;overflow:hidden;display:grid;place-items:center;transition:transform .15s ease, box-shadow .15s ease}
+.env::before{content:"";position:absolute;inset:0 0 auto 0;height:52%;background:linear-gradient(to bottom right,transparent 49.5%,var(--line) 50%,transparent 51%) left/50% 100% no-repeat,linear-gradient(to bottom left,transparent 49.5%,var(--line) 50%,transparent 51%) right/50% 100% no-repeat}
+.env::after{content:"";position:absolute;inset:auto 0 0 0;height:6px;background:repeating-linear-gradient(135deg,var(--red) 0 8px,transparent 8px 12px,var(--blue) 12px 20px,transparent 20px 24px);opacity:.85}
+.env:hover{transform:translateY(-3px) rotate(-.6deg);box-shadow:0 8px 20px var(--shade)}
+.postmark{position:relative;z-index:1;width:74px;height:74px;border-radius:50%;border:2.5px solid var(--blue);display:grid;place-items:center;align-content:center;font-family:var(--f-type);font-weight:700;color:var(--blue);background:var(--card);line-height:1}
+.postmark b{font-size:1.7rem}
+.postmark small{font-size:.6rem;letter-spacing:.12em;margin-top:2px}
+.postmark::after{content:"";position:absolute;inset:5px;border-radius:50%;border:1px dashed var(--blue);opacity:.6}
+.env .kind{position:absolute;z-index:1;top:6px;left:8px;font-family:var(--f-type);font-size:.68rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.env.used{background:var(--paper)}
+.env.used .postmark{opacity:.25}
+.env.used .stampd{display:block}
+.stampd{display:none;position:absolute;z-index:2;font-family:var(--f-type);font-weight:700;color:var(--red);border:3px solid var(--red);padding:2px 8px;transform:rotate(-14deg);letter-spacing:.12em;font-size:.9rem;border-radius:4px;opacity:.85}
+.finals{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin:18px 0 40px}
+.final{text-align:left;background:var(--card);border:2px solid var(--ink);border-radius:8px;padding:16px 18px;display:grid;gap:4px}
+.final:hover{background:var(--shade)}
+.final .lab{font-family:var(--f-type);font-size:.78rem;letter-spacing:.1em;text-transform:uppercase;color:var(--red)}
+.final b{font-family:var(--f-display);font-size:1.4rem;line-height:1.1}
+.final span{color:var(--muted)}
+.final.used{opacity:.6}
+
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(10,16,30,.6);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px))}
+.letter{width:min(1100px,100%);background:var(--card);border-radius:10px;box-shadow:0 30px 80px rgba(0,0,0,.35);overflow:hidden;animation:open .35s ease}
+@keyframes open{from{transform:translateY(24px) scale(.98);opacity:.4}}
+.letter .airmail{height:12px}
+.lhead{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;padding:16px 24px 0}
+.lhead .cat-name{font-family:var(--f-type);text-transform:uppercase;letter-spacing:.1em;font-size:.85rem;color:var(--muted)}
+.tag{font-family:var(--f-type);font-weight:700;font-size:.8rem;border:1.5px solid currentColor;border-radius:999px;padding:2px 10px;text-transform:uppercase;letter-spacing:.06em}
+.tag.pick{color:var(--blue)} .tag.fix{color:var(--red)} .tag.write{color:var(--gold)} .tag.huddle{color:var(--good)} .tag.sort{color:var(--blue)}
+.lhead .lvl{margin-left:auto;font-family:var(--f-type);font-weight:700;color:var(--muted)}
+.how{margin:10px 24px 0;color:var(--muted);font-style:italic}
+.lbody{padding:14px 24px 8px;display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:20px}
+.prompt{font-size:clamp(1.25rem,2.4vw,1.8rem);line-height:1.35;margin:0;text-wrap:pretty}
+.prompt em{font-style:normal;background:linear-gradient(transparent 62%,rgba(195,48,59,.22) 62%)}
+.quote{font-family:var(--f-type);font-size:clamp(1.15rem,2.2vw,1.6rem);background:var(--paper);border-left:4px solid var(--red);padding:12px 16px;margin:14px 0 0;border-radius:0 6px 6px 0}
+.steps{margin:14px 0 0;padding-left:22px;display:grid;gap:6px;font-size:1.1rem}
+.opts{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:10px;margin-top:16px}
+.opt{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:8px;padding:12px 14px;font-size:1.12rem;line-height:1.35}
+.opt .k{flex:none;width:32px;height:32px;border-radius:50%;display:grid;place-items:center;background:var(--ink);color:var(--card);font-family:var(--f-type);font-weight:700}
+.opt:hover{border-color:var(--ink)}
+.opt.sel{border-color:var(--blue);box-shadow:0 0 0 2px var(--blue) inset}
+.opt.right{border-color:var(--good);background:color-mix(in srgb,var(--good) 14%,var(--card))}
+.opt.right .k{background:var(--good)}
+.opt.wrong{border-color:var(--bad);background:color-mix(in srgb,var(--bad) 10%,var(--card))}
+.opt.dim{opacity:.5}
+
+.timer{display:grid;justify-items:center;gap:8px;align-content:start}
+.ring{--p:1;width:140px;height:140px;border-radius:50%;background:conic-gradient(var(--blue) calc(var(--p)*360deg),var(--line) 0);display:grid;place-items:center}
+.ring.low{background:conic-gradient(var(--red) calc(var(--p)*360deg),var(--line) 0)}
+.ring.done{animation:flash .6s ease 3}
+@keyframes flash{50%{transform:scale(1.08)}}
+.ring div{width:112px;height:112px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-family:var(--f-type);font-weight:700;font-size:2rem;font-variant-numeric:tabular-nums}
+.timer .row{display:flex;gap:6px}
+.timer .btn{padding:6px 10px;font-size:.85rem}
+
+.reveal-row{padding:6px 24px 0}
+.answer{margin:12px 24px 0;border:2px solid var(--good);border-radius:8px;padding:14px 18px;background:color-mix(in srgb,var(--good) 8%,var(--card))}
+.answer h3{margin:0 0 6px;font-family:var(--f-type);text-transform:uppercase;letter-spacing:.1em;font-size:.85rem;color:var(--good)}
+.answer .model{font-family:var(--f-type);font-size:clamp(1.1rem,2vw,1.4rem);font-weight:700;margin:4px 0 8px}
+.answer p,.answer li{font-size:1.08rem}
+.answer ul{margin:6px 0 0;padding-left:20px;display:grid;gap:4px}
+.lfoot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:16px 24px 22px;margin-top:12px;border-top:1px dashed var(--line)}
+
+.sortgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin-top:14px}
+.scard{position:relative;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:8px;padding:12px 14px 12px 54px;font-size:1.05rem;line-height:1.35;min-height:92px}
+.scard .lt{position:absolute;left:12px;top:12px;font-family:var(--f-type);font-weight:700;color:var(--muted)}
+.scard .num{position:absolute;left:8px;top:38px;width:34px;height:34px;border-radius:50%;background:var(--blue);color:var(--card);font-family:var(--f-type);font-weight:700;display:none;place-items:center}
+.scard.on .num{display:grid}
+.scard.on{border-color:var(--blue)}
+.scard.ok{border-color:var(--good)} .scard.ok .num{background:var(--good)}
+.scard.no{border-color:var(--bad)} .scard.no .num{background:var(--bad)}
+
+@media (max-width:720px){
+  .lbody{grid-template-columns:1fr}
+  .timer{grid-auto-flow:column;justify-content:start;align-items:center}
+  .ring{width:96px;height:96px}.ring div{width:76px;height:76px;font-size:1.35rem}
+  .lhead,.lbody,.reveal-row,.lfoot{padding-left:16px;padding-right:16px}
+  .answer,.how{margin-left:16px;margin-right:16px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wrap">
+    <div class="brand">
+      <h1>Return to <span>Sender</span></h1>
+      <p>Grade 7 · Term 3 revision · Address Unknown · Women Writers · Grammar</p>
+    </div>
+    <button class="btn" id="resetBtn" type="button">Reset board</button>
+  </div>
+  <div class="airmail" aria-hidden="true"></div>
+</header>
+
+<main class="wrap">
+  <details class="rules">
+    <summary>How it works</summary>
+    <ul>
+      <li>Open any envelope. Topics run across the top; levels go from 1 (warm-up) to 4 (hardest).</li>
+      <li>Students work in small groups. Each group talks it through and writes its answer on a mini whiteboard or paper.</li>
+      <li><b>Quick pick</b> and <b>Fix it</b>: groups show their answers at the same time, then explain their choices before you reveal the answer.</li>
+      <li><b>Huddle</b>: groups discuss, then a speaker from each group shares with the whole class. Use "What a strong answer includes" to sum up together.</li>
+      <li>Change speakers every time so everyone gets a turn to talk to the class.</li>
+    </ul>
+  </details>
+
+  <div class="board-scroll"><div class="board" id="board"></div></div>
+
+  <section class="finals" id="finals" aria-label="Final activities"></section>
+</main>
+
+<div class="overlay" id="overlay" hidden>
+  <article class="letter" id="letter" role="dialog" aria-modal="true" aria-labelledby="lp"></article>
+</div>
+
+<script>
+const KIND={pick:"Quick pick",fix:"Fix it",write:"Write it",huddle:"Huddle",sort:"Sort the story"};
+const HOW={
+  pick:"Discuss in your group and agree on one letter. Show your letters together, then explain why you chose it.",
+  fix:"Find every mistake. Write the corrected version on your board.",
+  write:"Write your answer as a group. Check spelling and punctuation before you show it.",
+  huddle:"Talk it through in your group. Then one speaker shares your ideas with the whole class.",
+  sort:"Put the frames in order as a group, then share your sequence with the class."
+};
+
+/* ---------- CONTENT ---------- */
+const CATS=[
+{name:"The Letters",sub:"Address Unknown",tiles:[
+ {type:"huddle",time:90,
+  prompt:"Martin asks Max to stop writing to him. What reason does he give, and what does this request reveal about the kind of friend Martin has become?",
+  steps:["Find the reason in Martin's letter.","Decide: is it a good reason, or an excuse?","Your speaker explains your group's answer."],
+  strong:["Martin says letters are opened and read by the censors","Contact with a Jewish friend could cost him his position and endanger his family","Shows fear and self-interest: he puts his own safety before the friendship","Sees this as a betrayal disguised as caution, and justifies the opinion"]},
+ {type:"huddle",time:90,
+  prompt:"<i>Address Unknown</i> is an epistolary novella: there is no narrator, only letters. What does this force the <em>reader</em> to do, and how does it make the story more powerful?",
+  steps:["Think about what the letters show and what they leave out.","Find one moment where the reader must work something out alone.","Share one effect on the reader."],
+  strong:["We only see what Max and Martin choose to write, so we must read between the lines","We infer what happened in the gaps between letters, e.g. what happened to Griselle","The dates show time passing and the political situation getting worse","It feels personal and real, and it shows written words can become a weapon"]},
+ {type:"huddle",time:90,
+  prompt:"Explain the title <i>Address Unknown</i> on two levels: what it means in the <em>plot</em>, and what it says about the <em>friendship</em>.",
+  steps:["First, the literal meaning: where do these words appear in the story?","Then, the deeper meaning: who or what is really \"unknown\"?"],
+  strong:["Literal: Max's last letter is returned, stamped \"Address unknown\", because Martin can no longer be found","Deeper: the Martin that Max once knew no longer exists; his old friend has become a stranger","Links to the theme of betrayal or of how prejudice changes people"]},
+ {type:"huddle",time:120,
+  prompt:"Max's final letters destroy Martin. Was Max being <em>principled</em>, or did he become like the man he hated?",
+  steps:["Decide your group's position. You may say \"both\", but you must explain why.","Name one IB Learner Profile attribute Max shows and one he fails to show.","Support it with one moment from the letters.","Your speaker shares in about 45 seconds."],
+  strong:["Takes a clear position and justifies it, not only retells the plot","Uses learner profile words accurately (principled, caring, risk-taker, reflective...)","Refers to the strange letters about \"family\", paintings and sizes that the censors would read","Considers the other side: Max lost his sister; Martin could have saved her"]}
+]},
+{name:"By a Lady",sub:"Women writers",tiles:[
+ {type:"huddle",time:90,
+  prompt:"The cover of <i>Sense and Sensibility</i> (1811) said only \"By a Lady\". What did this phrase <em>reveal</em> about the author, and what did it <em>hide</em>? Why do you think she chose it?",
+  steps:["List what a reader in 1811 could learn from \"By a Lady\".","List what stayed secret.","Agree on one reason for her choice."],
+  strong:["Revealed: the writer was a woman, and \"Lady\" suggested a respectable woman of good social class","Hid: her name and identity","Writing novels for money could damage a respectable woman's reputation","Shows women writers were not fully accepted as public authors"]},
+ {type:"huddle",time:90,
+  prompt:"The Brontë sisters published as Currer, Ellis and Acton Bell, and Mary Ann Evans wrote as George Eliot. Why did so many women writers choose men's names or no name at all? What did they gain, and what did they lose?",
+  steps:["Find at least two reasons.","Think about one thing they lost by hiding their names.","Share one gain and one loss with the class."],
+  strong:["To be taken seriously and judged on their writing, not their gender","To avoid prejudice from critics and publishers, or damage to their reputation","To protect their privacy and family","Loss: no public recognition; readers didn't know women could write so well"]},
+ {type:"huddle",time:90,
+  prompt:"In <i>A Room of One's Own</i> (1929), Woolf says a woman needs \"money and a room of her own\" to write fiction. Why does she ask for <em>money</em> and a <em>room</em>, not only talent?",
+  steps:["Explain what money gives a writer.","Explain what a room gives a writer.","Is Woolf's idea still true today? Give one example."],
+  strong:["Money = independence: without her own income, a woman depended on her father or husband","Without independence she had no control over her time and no freedom to write","A room = privacy and space to think and write without interruption","Connects to today with a relevant example and a justified opinion"]},
+ {type:"huddle",time:120,
+  prompt:"In <i>Sense and Sensibility</i>, when Mr Dashwood dies, his son from his first marriage inherits the family home and most of the money. His wife and daughters must leave. Explain how this <em>plot</em> and the <em>\"By a Lady\"</em> cover tell the same story about women in 1811.",
+  steps:["Find what the two things have in common.","Connect it to Woolf's idea about money.","One speaker shares; other groups can add one new idea."],
+  strong:["Women had little control over money or property","They depended on men, often through marriage","They had a limited public voice, so even the author hid her name","Links to Woolf: without money and space, women could not live or write freely"]}
+]},
+{name:"Big Questions",sub:"Inquiry questions",tiles:[
+ {type:"huddle",time:90,
+  prompt:"Define <em>antisemitism</em> in 15 words or fewer, in your own words.",
+  steps:["Each group writes one definition.","Every group reads theirs aloud.","As a class, find the words that appear in every definition and build one shared class definition."],
+  strong:["Prejudice, hatred or discrimination against Jewish people because they are Jewish","Can appear in words, ideas, laws or violence","Book example: how Griselle is treated in Berlin, or how Martin's attitude to Max changes"]},
+ {type:"huddle",time:90,
+  prompt:"Can propaganda really change the way we think? Over time, Martin's letters start to sound as if someone else is speaking through him. What changes in his <em>language</em>?",
+  steps:["Find two ways his words or tone change.","Decide: did propaganda change Martin, or did it give him an excuse?"],
+  strong:["He moves from warm, personal language to cold, official words","He repeats ideas about the \"new Germany\" and its leader","He begins to describe Jewish people as a group, not as individuals like his friend","Takes a position on the question and justifies it"]},
+ {type:"huddle",time:90,
+  prompt:"<b>Discussion round.</b> Do men and women write differently?",
+  steps:["Your group chooses YES or NO. Sitting on the fence is not allowed.","Give one reason and one example (a writer, a book, or a text from class).","After each group shares, the class can ask one follow-up question."],
+  strong:["Clear position and a reason","An example from the unit (Austen, Woolf, the Brontës...)","Considers whether differences come from gender or from the opportunities and experiences people had"]},
+ {type:"huddle",time:120,
+  prompt:"If Max and Martin had had WhatsApp instead of letters, would the friendship have broken <em>faster</em>, <em>slower</em> or <em>the same</em>? Is mobile technology damaging friendships today?",
+  steps:["Agree on one answer and two reasons.","Your speaker must use at least one second conditional sentence (If they had…, they would…).","Extra challenge: also use \"unless\" correctly."],
+  strong:["Compares letters with instant messages: speed, delay, what is said or hidden","Links back to censorship and the danger of written words","Correct second conditional: If they had used WhatsApp, the friendship would have…/would…"]}
+]},
+{name:"If & I Wish",sub:"Units 38–39",tiles:[
+ {type:"fix",time:45,
+  prompt:"Find the mistake and correct it:",
+  quote:"If I would be Martin, I would help Griselle.",
+  model:"If I were Martin, I would help Griselle.",
+  explain:"Never use <b>would</b> in the if-clause. In the second conditional we use the past: <b>If I were</b> (or <i>If I was</i> in informal English)."},
+ {type:"pick",time:60,
+  prompt:"Max writes in 1933: \"Griselle <em>is going</em> to Berlin next month for a play.\" Which sentence fits his situation best?",
+  options:["If she goes to Berlin, I will ask Martin to look after her.","If she went to Berlin, I would ask Martin to look after her.","If she would go to Berlin, I will ask Martin to look after her.","If she will go to Berlin, I ask Martin to look after her."],
+  correct:0,
+  explain:"The trip is real and planned, so we use the first conditional (if + present, will). The second conditional (B) is grammatically correct but describes an imaginary or unlikely situation, which doesn't fit Max's news."},
+ {type:"write",time:75,
+  prompt:"Martin, 1934: <em>\"I can't tell Max the truth because the censors read everything.\"</em> Write TWO sentences for Martin:",
+  steps:["one with <b>I wish</b>","one second conditional that explains why"],
+  model:"I wish I could tell Max the truth.<br>If the censors didn't read everything, I would tell him.",
+  explain:"<b>I wish + past</b> for a present situation: can't → <i>could</i>. The second conditional reverses the facts: they <i>read</i> → if they <i>didn't read</i>."},
+ {type:"pick",time:60,
+  prompt:"Only <em>one</em> of these sentences is correct. Which one?",
+  options:["I wish Max doesn't send that letter.","I wish I knew what happened to Griselle.","If Martin would reply, Max would feel calmer.","Unless Max will stop, Martin will lose everything."],
+  correct:1,
+  explain:"A: wish + past → <i>didn't send</i> (or <i>wouldn't send</i>). B is correct: wish + past simple for now. C: no <i>would</i> after if → <i>If Martin replied</i>. D: no <i>will</i> after unless → <i>Unless Max stops</i>."}
+]},
+{name:"Verb Patterns",sub:"Units 55–56",tiles:[
+ {type:"pick",time:45,
+  prompt:"Which verb <em>cannot</em> complete this sentence?<br><span class=\"quote\" style=\"display:block\">Martin ________ to answer Max's letter.</span>",
+  options:["refused","failed","avoided","decided"],
+  correct:2,
+  explain:"refuse, fail and decide are followed by <b>to + verb</b>. <b>Avoid</b> is followed by <b>-ing</b>: Martin avoided answering Max's letter."},
+ {type:"pick",time:60,
+  prompt:"In which group are <em>all four</em> verbs followed by <b>-ing</b>?",
+  options:["enjoy · decide · keep · finish","enjoy · avoid · keep · suggest","manage · agree · avoid · hope","deny · promise · mind · risk"],
+  correct:1,
+  explain:"enjoy, avoid, keep and suggest all take -ing. The odd ones out in the other groups: decide, manage, agree, hope and promise take <b>to + verb</b>."},
+ {type:"fix",time:75,
+  prompt:"This sentence has <em>two</em> mistakes. Find both:",
+  quote:"The publisher suggested to print the novel anonymously, and Austen agreed hiding her name.",
+  model:"The publisher suggested printing the novel anonymously, and Austen agreed to hide her name.",
+  explain:"<b>suggest + -ing</b> (never <i>suggest to</i>). <b>agree + to + verb</b>."},
+ {type:"write",time:90,
+  prompt:"Report what each person said. Use the verb in brackets + <em>object</em> + <em>to</em>.",
+  steps:["\"Don't stay at my house. It isn't safe,\" Martin said to Griselle. <b>(warn)</b>","\"You should hide your manuscript when visitors come,\" Cassandra said to Jane. <b>(advise)</b>"],
+  model:"Martin warned Griselle not to stay at his house.<br>Cassandra advised Jane to hide her manuscript when visitors came.",
+  explain:"verb + object + <b>(not) to</b>. Watch the word order: <i>warned her <b>not to</b> stay</i>, not <i>to not stay</i>. Pronouns change too: <i>my house → his house</i>."}
+]},
+{name:"Whose? Who?",sub:"Units 80–81",tiles:[
+ {type:"pick",time:45,
+  prompt:"Austen and the Brontës wrote about ________ lives in their time.",
+  options:["womens'","women's","woman's","womens"],
+  correct:1,
+  explain:"<i>Women</i> is an irregular plural (it doesn't end in s), so we add <b>'s</b>: women's. Same with children's and people's."},
+ {type:"pick",time:60,
+  prompt:"Max and Martin owned one gallery together. Which is correct?",
+  options:["It was Max and Martin's gallery.","It was Max's and Martin's gallery.","It was Max and Martins' gallery.","It was the gallery of Max and Martin's."],
+  correct:0,
+  explain:"When two people share one thing, put <b>'s</b> only on the last name: <i>Max and Martin's gallery</i>. <i>Max's and Martin's galleries</i> would mean two different galleries."},
+ {type:"write",time:60,
+  prompt:"Complete with a reflexive pronoun or <em>each other</em>:",
+  steps:["At first, the two friends wrote to ________ every month.","Later, Martin kept his fears to ________.","Griselle had to escape by ________ because nobody would help her."],
+  model:"each other · himself · herself",
+  explain:"<b>each other</b> = Max wrote to Martin and Martin wrote to Max. <b>keep something to yourself</b> = don't tell anyone. <b>by herself</b> = alone, without help."},
+ {type:"fix",time:75,
+  prompt:"This sentence has <em>three</em> mistakes. Find all of them:",
+  quote:"Max couldn't concentrate himself on his work. He felt himself very worried, and he walked to the post office by his own.",
+  model:"Max couldn't concentrate on his work. He felt very worried, and he walked to the post office by himself (or on his own).",
+  explain:"We don't use a reflexive pronoun after <b>concentrate</b>, <b>feel</b>, <b>relax</b> or <b>meet</b>. And it's <b>by himself</b> or <b>on his own</b>, never <i>by his own</i>."}
+]},
+{name:"Unless…",sub:"Units 114–115",tiles:[
+ {type:"pick",time:45,
+  prompt:"<span class=\"quote\" style=\"display:block\">Martin won't be safe unless Max stops writing.</span>What does this mean?",
+  options:["Martin will be safe if Max keeps writing.","Martin will be safe only if Max stops writing.","Martin won't be safe, even if Max stops writing.","Max stops writing because Martin isn't safe."],
+  correct:1,
+  explain:"<b>unless</b> = <b>if … not</b>. Martin won't be safe if Max doesn't stop, so stopping is the only way he can be safe."},
+ {type:"pick",time:45,
+  prompt:"Griselle packed a small bag ________ she had to leave Berlin quickly.",
+  options:["if","in case","unless","provided"],
+  correct:1,
+  explain:"<b>in case</b> = as a precaution, because something <i>might</i> happen. She packed the bag <i>before</i> knowing whether she had to leave. <i>If</i> would mean she packed it only after it happened."},
+ {type:"fix",time:75,
+  prompt:"Each sentence has one mistake. Correct both:",
+  quote:"1. Unless Max doesn't stop, Martin will lose his job.<br>2. Keep a copy of the letter in case you will need it.",
+  model:"1. Unless Max stops, Martin will lose his job.<br>2. Keep a copy of the letter in case you need it.",
+  explain:"1. <i>unless</i> already means <i>if not</i>, so don't add another negative (or say <i>If Max doesn't stop</i>). 2. No <b>will</b> after <i>in case</i>: use the present."},
+ {type:"write",time:90,
+  prompt:"Make ONE sentence using <em>as long as</em> or <em>provided (that)</em>:",
+  quote:"Martin will be safe. But only if he keeps quiet and stops writing to his Jewish friend.",
+  steps:["Then write a new class rule using <b>unless</b> and share it with the class."],
+  model:"Martin will be safe as long as / provided (that) he keeps quiet and stops writing to his Jewish friend.",
+  explain:"<b>as long as</b> and <b>provided (that)</b> = only if. Use the present after them, even when talking about the future. Example rule: <i>Nobody shares an answer unless the whole group agrees with it.</i>"}
+]}
+];
+
+const SORT_EVENTS=[
+ "Martin moves back to Germany with his family. Max stays in San Francisco to run their gallery.",
+ "Martin's letters begin to praise Hitler and the \"new Germany\".",
+ "Martin asks Max to stop writing to him because letters from a Jew are dangerous.",
+ "Max asks Martin to look after his sister Griselle, an actress performing in Berlin.",
+ "Griselle runs to Martin's house for help. He refuses to protect her, and she is killed.",
+ "Martin's cold letter tells Max that Griselle is dead.",
+ "Max sends strange letters full of \"family news\" and painting sizes, knowing the censors will read them.",
+ "Max's final letter to Martin is returned, stamped \"Address unknown\"."
+];
+const SORT_ORDER=[3,6,0,7,2,5,1,4]; // display position -> event index (fixed shuffle)
+const LETTERS="ABCDEFGH";
+
+const FINALS=[
+ {id:"F1",type:"sort",time:240,title:"Graphic novel storyboard",desc:"Put 8 frames of Address Unknown in order, then choose the 6 you would draw.",
+  prompt:"These are frames for a graphic novel of <i>Address Unknown</i>, but they are in the wrong order. Put all eight in sequence."},
+ {id:"F2",type:"huddle",time:180,title:"The Hall of Voices",desc:"Each group presents a woman they admire in a 60-second talk.",
+  prompt:"For International Women's Day (8 March), your group presents one woman for the class <em>Hall of Voices</em>. She can be a writer, a historical figure, or someone you know.",
+  steps:["3 minutes to plan, then 60 seconds to present to the class.","Say what she did, how she inspires you, and why recognising women's contributions matters.","Include one conditional, one verb pattern (e.g. <i>decided to</i>, <i>kept -ing</i>), and one reflexive pronoun or <i>each other</i>.","While listening, the class notes the three grammar structures they hear in each talk."],
+  strong:["A clear structure: who she is → what she did → why she matters","Vivid language that keeps the audience interested","All three grammar structures used correctly","Connects to the unit: voice, opportunity, recognition"]}
+];
+
+/* ---------- STATE (opened envelopes only) ---------- */
+const KEY="rts-g7-term3-v2";
+let state={opened:{}};
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.opened)return s}catch(e){}return null}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+
+const $=s=>document.querySelector(s);
+
+function renderBoard(){
+  const b=$("#board");b.innerHTML="";
+  CATS.forEach(c=>{const h=document.createElement("div");h.className="cat";h.innerHTML=`<b>${c.name}</b><small>${c.sub}</small>`;b.appendChild(h)});
+  for(let r=0;r<4;r++){
+    CATS.forEach((c,ci)=>{
+      const t=c.tiles[r],id=ci+"-"+r,used=!!state.opened[id];
+      const e=document.createElement("button");e.type="button";e.className="env"+(used?" used":"");
+      e.setAttribute("aria-label",`${c.name}, level ${r+1}${used?", already done":""}`);
+      e.innerHTML=`<span class="kind">${KIND[t.type]}</span><span class="postmark"><b>${r+1}</b><small>LEVEL</small></span><span class="stampd">DELIVERED</span>`;
+      e.onclick=()=>openTile(ci,r);
+      b.appendChild(e);
+    });
+  }
+  const f=$("#finals");f.innerHTML="";
+  FINALS.forEach(F=>{
+    const e=document.createElement("button");e.type="button";e.className="final"+(state.opened[F.id]?" used":"");
+    e.innerHTML=`<span class="lab">Final activity</span><b>${F.title}</b><span>${F.desc}</span>`;
+    e.onclick=()=>openFinal(F);f.appendChild(e);
+  });
+}
+
+/* ---------- MODAL ---------- */
+let cur=null,timerInt=null,audioCtx=null;
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function shell({catName,type,level,inner,time,answerHTML,extraFoot}){
+  return `<div class="airmail" aria-hidden="true"></div>
+  <div class="lhead"><span class="cat-name">${catName}</span><span class="tag ${type}">${KIND[type]}</span>${level?`<span class="lvl">Level ${level}</span>`:""}</div>
+  <p class="how">${HOW[type]}</p>
+  <div class="lbody"><div id="lp">${inner}</div>
+    <div class="timer"><div class="ring" id="ring"><div id="tleft">${fmt(time)}</div></div><div class="row"><button class="btn solid" id="tgo" type="button">Start</button><button class="btn" id="treset" type="button">Reset</button></div></div>
+  </div>
+  <div class="reveal-row"><button class="btn solid" id="revealBtn" type="button">Reveal answer</button></div>
+  <div id="ans" hidden>${answerHTML}</div>
+  <div class="lfoot">${extraFoot||""}<button class="btn" id="closeBtn" type="button">Back to board</button><button class="btn solid" id="doneBtn" type="button">Done</button></div>`;
+}
+
+function openTile(ci,ti){
+  const c=CATS[ci],t=c.tiles[ti];
+  cur={id:ci+"-"+ti,type:t.type,tile:t};
+  let inner=`<p class="prompt">${t.prompt}</p>`;
+  if(t.quote)inner+=`<p class="quote">${t.quote}</p>`;
+  if(t.steps)inner+=`<ol class="steps">${t.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`;
+  if(t.type==="pick")inner+=`<div class="opts">${t.options.map((o,i)=>`<button type="button" class="opt" data-o="${i}"><span class="k">${"ABCD"[i]}</span><span>${o}</span></button>`).join("")}</div>`;
+  let ans;
+  if(t.type==="pick")ans=`<div class="answer"><h3>Answer: ${"ABCD"[t.correct]}</h3><p>${t.explain}</p></div>`;
+  else if(t.type==="huddle")ans=`<div class="answer"><h3>What a strong answer includes</h3><ul>${t.strong.map(s=>`<li>${s}</li>`).join("")}</ul></div>`;
+  else ans=`<div class="answer"><h3>Model answer</h3><div class="model">${t.model}</div><p>${t.explain}</p></div>`;
+  $("#letter").innerHTML=shell({catName:c.name+" · "+c.sub,type:t.type,level:ti+1,inner,time:t.time,answerHTML:ans});
+  wireModal(t.time);
+  if(t.type==="pick")document.querySelectorAll(".opt").forEach(b=>b.onclick=()=>{if(cur.revealed)return;document.querySelectorAll(".opt").forEach(x=>x.classList.remove("sel"));b.classList.add("sel")});
+  showModal();
+}
+
+function openFinal(F){
+  cur={id:F.id,type:F.type};
+  let inner=`<p class="prompt">${F.prompt}</p>`,ans,extra="";
+  if(F.type==="sort"){
+    inner+=`<p class="how" style="margin:8px 0 0">Click the frames in order (1→8). Click a numbered frame to take it out. Then discuss: which 6 frames would you draw, and why?</p><div class="sortgrid">${SORT_ORDER.map((ev,pos)=>`<button type="button" class="scard" data-pos="${pos}"><span class="lt">${LETTERS[pos]}</span><span class="num"></span>${SORT_EVENTS[ev]}</button>`).join("")}</div>`;
+    const seq=SORT_EVENTS.map((_,ev)=>LETTERS[SORT_ORDER.indexOf(ev)]).join(" → ");
+    ans=`<div class="answer"><h3>Correct order</h3><div class="model">${seq}</div><p>Now ask the groups: which two frames would you cut to make a six-frame graphic novel? Why can't the story lose the others?</p></div>`;
+    extra=`<button class="btn" id="checkSort" type="button">Check the order</button>`;
+  }else{
+    inner+=`<ol class="steps">${F.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`;
+    ans=`<div class="answer"><h3>What a strong talk includes</h3><ul>${F.strong.map(s=>`<li>${s}</li>`).join("")}</ul></div>`;
+  }
+  $("#letter").innerHTML=shell({catName:"Final activity",type:F.type,level:0,inner,time:F.time,answerHTML:ans,extraFoot:extra});
+  wireModal(F.time);
+  if(F.type==="sort"){
+    let seq=[];
+    const draw=()=>document.querySelectorAll(".scard").forEach(b=>{const p=+b.dataset.pos,k=seq.indexOf(p);b.classList.toggle("on",k>-1);b.classList.remove("ok","no");b.querySelector(".num").textContent=k>-1?k+1:""});
+    document.querySelectorAll(".scard").forEach(b=>b.onclick=()=>{const p=+b.dataset.pos,k=seq.indexOf(p);if(k>-1)seq.splice(k,1);else seq.push(p);draw()});
+    $("#checkSort").onclick=()=>{
+      draw();let right=0;
+      seq.forEach((p,k)=>{const ok=SORT_ORDER[p]===k;if(ok)right++;document.querySelector(`.scard[data-pos="${p}"]`).classList.add(ok?"ok":"no")});
+      $("#checkSort").textContent=`${right} of 8 in the right place`;
+    };
+  }
+  showModal();
+}
+
+function wireModal(sec){
+  let left=sec,running=false;
+  const ring=$("#ring"),tl=$("#tleft"),go=$("#tgo");
+  const paint=()=>{tl.textContent=fmt(left);ring.style.setProperty("--p",left/sec);ring.classList.toggle("low",left<=10)};
+  const stop=()=>{clearInterval(timerInt);timerInt=null;running=false;go.textContent="Start"};
+  go.onclick=()=>{
+    try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
+    if(running){stop();return}
+    if(left<=0){left=sec;ring.classList.remove("done")}
+    running=true;go.textContent="Pause";
+    timerInt=setInterval(()=>{left--;paint();if(left<=0){stop();ring.classList.add("done");beep()}},1000);
+  };
+  $("#treset").onclick=()=>{stop();left=sec;ring.classList.remove("done");paint()};
+  paint();
+  $("#revealBtn").onclick=()=>{
+    cur.revealed=true;$("#ans").hidden=false;$("#revealBtn").hidden=true;
+    if(cur.type==="pick"){const t=cur.tile;document.querySelectorAll(".opt").forEach(b=>{const i=+b.dataset.o;if(i===t.correct)b.classList.add("right");else if(b.classList.contains("sel"))b.classList.add("wrong");else b.classList.add("dim")})}
+    if(cur.type==="sort"){const s=$("#checkSort");if(s)s.click()}
+    $("#ans").scrollIntoView({behavior:"smooth",block:"nearest"});
+  };
+  $("#closeBtn").onclick=closeModal;
+  $("#doneBtn").onclick=()=>{state.opened[cur.id]=true;save();closeModal();renderBoard()};
+}
+function beep(){
+  if(!audioCtx)return;
+  try{[0,.25,.5].forEach(d=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.frequency.value=660;o.connect(g);g.connect(audioCtx.destination);g.gain.setValueAtTime(.2,audioCtx.currentTime+d);g.gain.exponentialRampToValueAtTime(.001,audioCtx.currentTime+d+.2);o.start(audioCtx.currentTime+d);o.stop(audioCtx.currentTime+d+.22)})}catch(e){}
+}
+function showModal(){$("#overlay").hidden=false;document.body.style.overflow="hidden";$("#overlay").scrollTop=0;setTimeout(()=>$("#revealBtn").focus({preventScroll:true}),50)}
+function closeModal(){clearInterval(timerInt);timerInt=null;$("#overlay").hidden=true;document.body.style.overflow="";cur=null}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#overlay").hidden)closeModal()});
+$("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeModal()});
+
+let resetArm=null;
+$("#resetBtn").onclick=()=>{
+  const b=$("#resetBtn");
+  if(!resetArm){b.textContent="Tap again to reset";resetArm=setTimeout(()=>{b.textContent="Reset board";resetArm=null},3000);return}
+  clearTimeout(resetArm);resetArm=null;b.textContent="Reset board";
+  state={opened:{}};save();renderBoard();
+};
+
+function start(data){state=(data&&data.opened)?data:(load()||{opened:{}});save();renderBoard()}
+try{window.claude?.hot?.snapshot?.(()=>state)}catch(e){}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? null);
+</script>
+</body>
+</html>
