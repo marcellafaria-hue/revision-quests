@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Writers' Gala: Five Authors Quest</title>
+<style>
+  :root {
+    --ink: #0c231d;
+    --panel: #143329;
+    --panel-hi: #1c4337;
+    --accent: #e3b94d;
+    --accent-dark: #c29a31;
+    --paper: #f3efe2;
+    --muted: #9db8ad;
+    --line: #2a5143;
+    --green: #47c08a;
+    --red: #e2584c;
+    --card-shadow: 0 18px 40px rgba(0,0,0,.45);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    background: radial-gradient(circle at 20% 0%, #17392e, #08150f 70%);
+    color: var(--paper);
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1, h2, h3 { margin: 0; }
+  .hidden { display: none !important; }
+
+  /* Intro */
+  #intro { text-align: center; padding-top: 24px; }
+  #intro .seal { font-size: 3.2rem; }
+  #intro h1 { font-size: clamp(1.7rem, 6vw, 2.4rem); margin: 10px 0 6px; color: var(--accent); letter-spacing: .02em; }
+  #intro p { font-size: 1.02rem; line-height: 1.55; color: var(--muted); max-width: 560px; margin: 0 auto 10px; }
+  .notebook {
+    margin: 22px auto; text-align: left; background: var(--panel); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px 20px; box-shadow: var(--card-shadow);
+  }
+  .notebook h3 { color: var(--accent); font-size: 1.02rem; margin-bottom: 8px; }
+  .notebook ul { margin: 0; padding-left: 20px; line-height: 1.65; font-size: .93rem; color: var(--paper); }
+  .notebook li b { color: var(--accent); }
+  .btn {
+    display: inline-block; margin-top: 14px; padding: 13px 30px; border: none; border-radius: 999px;
+    background: var(--accent); color: #1d1604; font-size: 1.02rem; font-weight: bold; cursor: pointer;
+    font-family: Georgia, serif; box-shadow: var(--card-shadow);
+  }
+  .btn:hover { background: var(--accent-dark); }
+  .btn.secondary { background: transparent; color: var(--accent); border: 2px solid var(--accent); box-shadow: none; }
+
+  /* Progress */
+  #progress { display: flex; justify-content: center; gap: 7px; margin: 18px 0 6px; flex-wrap: wrap; }
+  .dot { width: 13px; height: 13px; border-radius: 50%; background: var(--line); border: 2px solid var(--line); }
+  .dot.done { background: var(--green); border-color: var(--green); }
+  .dot.current { background: var(--accent); border-color: var(--accent-dark); }
+
+  #scorepill { text-align: center; font-size: .95rem; font-weight: bold; color: var(--accent); margin-bottom: 6px; }
+
+  /* Station header */
+  #stationHeader { text-align: center; margin-bottom: 10px; }
+  #stationHeader .icon { font-size: 2.1rem; }
+  #stationHeader h2 { font-size: 1.22rem; color: var(--accent); margin-top: 4px; }
+  #stationHeader p { font-size: .88rem; color: var(--muted); margin: 2px 0 0; font-style: italic; }
+
+  /* Card */
+  .card {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 16px;
+    padding: 22px 20px; box-shadow: var(--card-shadow); margin-top: 14px;
+  }
+  .qtext { font-size: 1.1rem; line-height: 1.4; margin-bottom: 16px; font-weight: bold; color: var(--paper); }
+  .opts { display: grid; gap: 10px; }
+  .opt {
+    text-align: left; width: 100%; background: var(--panel-hi); border: 2px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; font-size: .98rem; font-family: inherit; cursor: pointer; color: var(--paper);
+  }
+  .opt:hover:not(:disabled) { border-color: var(--accent); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { border-color: var(--green); background: rgba(71,192,138,.18); color: #c6f5de; font-weight: bold; }
+  .opt.wrong { border-color: var(--red); background: rgba(226,88,76,.18); color: #f5c6c1; text-decoration: line-through; }
+
+  .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: .93rem; line-height: 1.4; }
+  .feedback.good { background: rgba(71,192,138,.14); border-left: 4px solid var(--green); color: #c6f5de; }
+  .feedback.bad { background: rgba(226,88,76,.14); border-left: 4px solid var(--red); color: #f5c6c1; }
+
+  .nextrow { text-align: right; margin-top: 16px; }
+
+  /* Final */
+  #final { text-align: center; padding-top: 24px; }
+  #final .seal { font-size: 3.4rem; }
+  #final h2 { font-size: 1.8rem; color: var(--accent); margin: 10px 0 6px; }
+  #final .finalscore { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; }
+  #final p.msg { font-size: 1.02rem; color: var(--muted); max-width: 520px; margin: 0 auto 18px; line-height: 1.55; }
+
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div id="intro">
+    <div class="seal">🎭</div>
+    <h1>The Writers' Gala</h1>
+    <p>Tonight, five great women writers are hosting a grand literary ball, and you're on the guest list! Visit each writer's room, answer their questions, and find out how much you know about their lives and books. The last room mixes all five, so stay sharp.</p>
+
+    <div class="notebook">
+      <h3>📜 The Gala Programme — your hosts</h3>
+      <ul>
+        <li><b>Jane Austen</b> (1775–1817): <i>Pride and Prejudice</i>, <i>Emma</i></li>
+        <li><b>Mary Shelley</b> (1797–1851): <i>Frankenstein</i> (1818)</li>
+        <li><b>Virginia Woolf</b> (1882–1941): <i>Mrs Dalloway</i>, <i>To the Lighthouse</i>, <i>A Room of One's Own</i></li>
+        <li><b>Agatha Christie</b> (1890–1976): <i>Murder on the Orient Express</i>, <i>And Then There Were None</i></li>
+        <li><b>J.K. Rowling</b> (born 1965): the <i>Harry Potter</i> series</li>
+      </ul>
+    </div>
+
+    <button class="btn" id="startBtn">Enter the Gala →</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <div id="scorepill">⭐ <span id="scoreNum">0</span>/<span id="scoreTotal">24</span></div>
+    <div id="progress"></div>
+    <div id="stationHeader"></div>
+    <div class="card" id="qCard"></div>
+  </div>
+
+  <div id="final" class="hidden">
+    <div class="seal">🏆</div>
+    <h2 id="finalTitle">The Gala Is Over!</h2>
+    <div class="finalscore">⭐ <span id="finalScore">0</span> / 24</div>
+    <p class="msg" id="finalMsg"></p>
+    <button class="btn secondary" id="retryBtn">Return to the Gala</button>
+  </div>
+
+</div>
+
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const STATIONS = [
+  {
+    title: "Room 1 · The Drawing Room",
+    subtitle: "Your host: Jane Austen",
+    icon: "🫖",
+    questions: [
+      {
+        prompt: "When Jane Austen's first novels were published, how did her name appear on the title page?",
+        options: [
+          "Her full name, Jane Austen",
+          "It didn't appear: the books were published anonymously (for example, “By a Lady”)",
+          "Under a man's pen name",
+          "Under the name of her brother Henry"
+        ],
+        correct: 1,
+        good: "Right! Austen's novels came out anonymously during her lifetime. Her name was only made public after she died.",
+        bad: "Not quite. Austen's novels were published anonymously, with no name or just “By a Lady.”"
+      },
+      {
+        prompt: "In <i>Pride and Prejudice</i>, who does Elizabeth Bennet finally marry?",
+        options: ["Mr Bingley", "Mr Wickham", "Mr Collins", "Mr Darcy"],
+        correct: 3,
+        good: "Yes! After many misunderstandings, Elizabeth and Mr Darcy get together. (Mr Bingley marries her sister Jane.)",
+        bad: "Not quite. Elizabeth marries Mr Darcy; Mr Bingley marries her sister Jane."
+      },
+      {
+        prompt: "In Austen's novel <i>Emma</i>, what is Emma Woodhouse's favourite hobby?",
+        options: [
+          "Matchmaking: trying to find husbands and wives for her friends",
+          "Solving mysteries in her village",
+          "Writing novels",
+          "Travelling abroad"
+        ],
+        correct: 0,
+        good: "Exactly. Emma loves matchmaking, though she often gets it wrong!",
+        bad: "Not quite. Emma loves matchmaking, and her plans don't always go as she expects."
+      },
+      {
+        prompt: "Which topics do Austen's novels focus on?",
+        options: [
+          "Space travel and science",
+          "War and sea battles",
+          "Marriage, money and social class",
+          "Magic and monsters"
+        ],
+        correct: 2,
+        good: "Yes! Austen wrote about marriage, money and class in the lives of ordinary English families.",
+        bad: "Not quite. Austen's novels focus on marriage, money and social class."
+      }
+    ]
+  },
+  {
+    title: "Room 2 · The Study",
+    subtitle: "Your host: Virginia Woolf",
+    icon: "📓",
+    questions: [
+      {
+        prompt: "In <i>A Room of One's Own</i>, Woolf invents an imaginary sister for Shakespeare, just as gifted as he was. What is her name?",
+        options: ["Anne", "Susanna", "Judith", "Beatrice"],
+        correct: 2,
+        good: "Right! Judith Shakespeare: Woolf uses her to show how a woman's talent could be wasted without education or opportunity.",
+        bad: "Not quite. Woolf's imaginary sister is called Judith."
+      },
+      {
+        prompt: "“Stream of consciousness” is a writing technique where…",
+        options: [
+          "the narrative follows the flow of a character's thoughts and feelings as they happen",
+          "the story is told through letters",
+          "the narrator asks a question and then answers it",
+          "every chapter ends with a cliffhanger"
+        ],
+        correct: 0,
+        good: "Yes! Woolf was famous for this technique, taking readers right inside her characters' minds.",
+        bad: "Not quite. Stream of consciousness follows a character's thoughts as they flow."
+      },
+      {
+        prompt: "<i>Mrs Dalloway</i> takes place over…",
+        options: [
+          "a whole year at a country house",
+          "a week-long sea voyage",
+          "a single summer in Paris",
+          "a single day in London"
+        ],
+        correct: 3,
+        good: "Right! The whole novel follows one day in London, as Clarissa Dalloway prepares for a party.",
+        bad: "Not quite. <i>Mrs Dalloway</i> takes place over a single day in London."
+      },
+      {
+        prompt: "Virginia Woolf and her husband Leonard started their own publishing company. What was it called?",
+        options: ["Bloomsbury Press", "The Hogarth Press", "Penguin Books", "Orlando &amp; Co."],
+        correct: 1,
+        good: "Yes! The Hogarth Press. (The Bloomsbury Group was her circle of friends.)",
+        bad: "Not quite. They founded the Hogarth Press."
+      }
+    ]
+  },
+  {
+    title: "Room 3 · The Edinburgh Café",
+    subtitle: "Your host: J.K. Rowling",
+    icon: "⚡",
+    questions: [
+      {
+        prompt: "Why does Joanne Rowling publish as “J.K.” Rowling?",
+        options: [
+          "Her publisher worried that boys might not want to read a book written by a woman",
+          "She wanted to hide her identity from fans",
+          "Her real name was too long for a book cover",
+          "It was the name of her main character"
+        ],
+        correct: 0,
+        good: "Right! She has no middle name, so she chose K, for Kathleen, her grandmother.",
+        bad: "Not quite. Her publisher thought boys might not pick up a book by a woman, so she used her initials."
+      },
+      {
+        prompt: "Where was Rowling when the idea for Harry Potter first came to her?",
+        options: [
+          "In a Scottish castle",
+          "In a library in Oxford",
+          "On a delayed train from Manchester to London",
+          "In a classroom in Edinburgh"
+        ],
+        correct: 2,
+        good: "Yes! The idea came to her on a delayed train, and she began writing soon after.",
+        bad: "Not quite. The idea came while she was on a delayed train from Manchester to London."
+      },
+      {
+        prompt: "What pen name did Rowling use for her crime novels for adults, such as <i>The Cuckoo's Calling</i>?",
+        options: ["Mary Westmacott", "Robert Galbraith", "Currer Bell", "George Eliot"],
+        correct: 1,
+        good: "Right! Robert Galbraith. (Mary Westmacott was a pen name used by Agatha Christie.)",
+        bad: "Not quite. Rowling's crime novels are written as Robert Galbraith."
+      },
+      {
+        prompt: "What is the title of the first Harry Potter book, published in the UK in 1997?",
+        options: [
+          "Harry Potter and the Chamber of Secrets",
+          "Harry Potter and the Goblet of Fire",
+          "Harry Potter and the Prisoner of Azkaban",
+          "Harry Potter and the Philosopher's Stone"
+        ],
+        correct: 3,
+        good: "Yes! <i>Harry Potter and the Philosopher's Stone</i> began the series.",
+        bad: "Not quite. The first book is <i>Harry Potter and the Philosopher's Stone</i>."
+      }
+    ]
+  },
+  {
+    title: "Room 4 · The Villa by the Lake",
+    subtitle: "Your host: Mary Shelley",
+    icon: "🌩️",
+    questions: [
+      {
+        prompt: "How did <i>Frankenstein</i> begin?",
+        options: [
+          "As a school homework assignment",
+          "As a newspaper serial",
+          "As a bet about who could write the longest novel",
+          "As a ghost-story challenge among friends on holiday by Lake Geneva"
+        ],
+        correct: 3,
+        good: "Right! In 1816, on a gloomy holiday by Lake Geneva, friends challenged each other to write ghost stories. Mary was only 18.",
+        bad: "Not quite. It began as a ghost-story challenge among friends on holiday by Lake Geneva."
+      },
+      {
+        prompt: "In the novel, who is Frankenstein?",
+        options: [
+          "The creature itself",
+          "Victor Frankenstein, the young scientist who creates the creature",
+          "The ship's captain who writes the letters",
+          "The creature's loyal friend"
+        ],
+        correct: 1,
+        good: "Yes! Frankenstein is the scientist. The creature is never given a name.",
+        bad: "Not quite. Frankenstein is Victor, the scientist. The creature has no name."
+      },
+      {
+        prompt: "Mary Shelley's mother was a famous writer who argued for women's rights. Who was she?",
+        options: ["Jane Austen", "Ada Lovelace", "Mary Wollstonecraft", "Charlotte Brontë"],
+        correct: 2,
+        good: "Right! Mary Wollstonecraft wrote <i>A Vindication of the Rights of Woman</i>.",
+        bad: "Not quite. Her mother was Mary Wollstonecraft."
+      },
+      {
+        prompt: "<i>Frankenstein</i> (1818) is often called one of the first novels in which genre?",
+        options: ["Science fiction", "Detective fiction", "Comedy of manners", "Epic poetry"],
+        correct: 0,
+        good: "Yes! Many people call <i>Frankenstein</i> one of the very first science-fiction novels.",
+        bad: "Not quite. It is often called one of the first science-fiction novels."
+      }
+    ]
+  },
+  {
+    title: "Room 5 · The Orient Express",
+    subtitle: "Your host: Agatha Christie",
+    icon: "🔍",
+    questions: [
+      {
+        prompt: "Which two famous detectives did Agatha Christie create?",
+        options: [
+          "Sherlock Holmes and Dr Watson",
+          "Hercule Poirot and Miss Marple",
+          "Inspector Morse and Lewis",
+          "Cormoran Strike and Robin Ellacott"
+        ],
+        correct: 1,
+        good: "Right! Poirot and Miss Marple. (Cormoran Strike is Rowling's detective.)",
+        bad: "Not quite. Christie created Hercule Poirot and Miss Marple."
+      },
+      {
+        prompt: "Christie's play <i>The Mousetrap</i> holds which record?",
+        options: [
+          "The longest continuous run of any play in London's West End",
+          "The first play ever written by a woman",
+          "The play with the most characters on stage",
+          "The only play to win a Nobel Prize"
+        ],
+        correct: 0,
+        good: "Yes! <i>The Mousetrap</i> opened in 1952 and has been running ever since.",
+        bad: "Not quite. <i>The Mousetrap</i> holds the record for the longest continuous run in London's West End."
+      },
+      {
+        prompt: "Poison appears in many of Christie's stories. Where did she learn so much about it?",
+        options: [
+          "From a detective agency",
+          "From studying chemistry at university",
+          "From her grandmother, a famous scientist",
+          "From working in a hospital pharmacy during the World Wars"
+        ],
+        correct: 3,
+        good: "Right! She worked in hospital dispensaries during both wars.",
+        bad: "Not quite. She learned about poisons while working in a hospital pharmacy during the World Wars."
+      },
+      {
+        prompt: "Where does most of <i>Murder on the Orient Express</i> take place?",
+        options: [
+          "On a ship crossing the Atlantic",
+          "In a country-house garden",
+          "On a luxury train stopped by a snowdrift",
+          "In a Paris hotel"
+        ],
+        correct: 2,
+        good: "Yes! The train is stuck in the snow, so the murderer must still be on board.",
+        bad: "Not quite. The story takes place on a luxury train stopped by a snowdrift."
+      }
+    ]
+  },
+  {
+    title: "Final Room · The Grand Ballroom",
+    subtitle: "All five authors together",
+    icon: "🏆",
+    questions: [
+      {
+        prompt: "Which two authors from this quest also published books under another name?",
+        options: [
+          "Jane Austen and Virginia Woolf",
+          "Mary Shelley and Jane Austen",
+          "J.K. Rowling and Agatha Christie",
+          "Virginia Woolf and Mary Shelley"
+        ],
+        correct: 2,
+        good: "Right! Rowling wrote as Robert Galbraith, and Christie wrote romance novels as Mary Westmacott. (Austen and Shelley published anonymously, which isn't the same as using a pen name.)",
+        bad: "Not quite. Rowling (Robert Galbraith) and Christie (Mary Westmacott) both used pen names."
+      },
+      {
+        prompt: "Which list shows the authors from earliest born to latest born?",
+        options: [
+          "Shelley, Austen, Woolf, Christie, Rowling",
+          "Austen, Shelley, Christie, Woolf, Rowling",
+          "Austen, Woolf, Shelley, Rowling, Christie",
+          "Austen, Shelley, Woolf, Christie, Rowling"
+        ],
+        correct: 3,
+        good: "Exactly! Austen (1775), Shelley (1797), Woolf (1882), Christie (1890), Rowling (1965).",
+        bad: "Not quite. The order is Austen (1775), Shelley (1797), Woolf (1882), Christie (1890), Rowling (1965)."
+      },
+      {
+        prompt: "Who am I? “I began my most famous novel as a teenager, and the creature in it never gets a name.”",
+        options: ["Virginia Woolf", "Mary Shelley", "Agatha Christie", "Jane Austen"],
+        correct: 1,
+        good: "Yes! Mary Shelley began <i>Frankenstein</i> when she was 18.",
+        bad: "Not quite. That's Mary Shelley, author of <i>Frankenstein</i>."
+      },
+      {
+        prompt: "Which author is matched with the right genre?",
+        options: [
+          "Agatha Christie: detective fiction",
+          "Jane Austen: gothic horror",
+          "Virginia Woolf: crime fiction",
+          "Mary Shelley: romantic comedy"
+        ],
+        correct: 0,
+        good: "Right! Christie was known as the “Queen of Crime.”",
+        bad: "Not quite. Agatha Christie wrote detective fiction."
+      }
+    ]
+  }
+];
+
+let current = 0, score = 0, qIndex = 0, answered = false;
+const totalQuestions = STATIONS.reduce((n, s) => n + s.questions.length, 0);
+
+function flatIndex() {
+  let n = 0;
+  for (let i = 0; i < current; i++) n += STATIONS[i].questions.length;
+  return n + qIndex;
+}
+
+function renderProgress() {
+  const el = document.getElementById("progress");
+  el.innerHTML = "";
+  const done = flatIndex();
+  for (let i = 0; i < totalQuestions; i++) {
+    const d = document.createElement("div");
+    d.className = "dot" + (i < done ? " done" : i === done ? " current" : "");
+    el.appendChild(d);
+  }
+}
+
+function renderStationHeader() {
+  const s = STATIONS[current];
+  document.getElementById("stationHeader").innerHTML =
+    `<div class="icon">${s.icon}</div><h2>${s.title}</h2><p>${s.subtitle}</p>`;
+}
+
+function renderQuestion() {
+  answered = false;
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  document.getElementById("scoreNum").textContent = score;
+  renderProgress();
+  const card = document.getElementById("qCard");
+  card.innerHTML = `
+    <div class="qtext">${q.prompt}</div>
+    <div class="opts" id="opts"></div>
+    <div id="feedbackArea"></div>
+    <div class="nextrow" id="nextRow"></div>
+  `;
+  const optsDiv = document.getElementById("opts");
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.innerHTML = opt;
+    btn.onclick = () => selectAnswer(i);
+    optsDiv.appendChild(btn);
+  });
+}
+
+function selectAnswer(i) {
+  if (answered) return;
+  answered = true;
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  const buttons = document.querySelectorAll("#opts .opt");
+  buttons.forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === q.correct) b.classList.add("correct");
+    else if (idx === i && i !== q.correct) b.classList.add("wrong");
+  });
+  const fb = document.getElementById("feedbackArea");
+  if (i === q.correct) {
+    score++;
+    document.getElementById("scoreNum").textContent = score;
+    fb.innerHTML = `<div class="feedback good">✅ ${q.good}</div>`;
+  } else {
+    fb.innerHTML = `<div class="feedback bad">❌ ${q.bad}</div>`;
+  }
+  const isLast = current === STATIONS.length - 1 && qIndex === s.questions.length - 1;
+  document.getElementById("nextRow").innerHTML =
+    `<button class="btn" id="nextBtn">${isLast ? "See Results →" : "Next →"}</button>`;
+  document.getElementById("nextBtn").onclick = advance;
+}
+
+function advance() {
+  const s = STATIONS[current];
+  if (qIndex < s.questions.length - 1) {
+    qIndex++;
+    renderQuestion();
+  } else if (current < STATIONS.length - 1) {
+    current++;
+    qIndex = 0;
+    renderStationHeader();
+    renderQuestion();
+  } else {
+    showFinal();
+  }
+}
+
+function showFinal() {
+  document.getElementById("game").classList.add("hidden");
+  const finalEl = document.getElementById("final");
+  finalEl.classList.remove("hidden");
+  document.getElementById("finalScore").textContent = score;
+  let msg;
+  if (score === totalQuestions) msg = "A flawless evening! You know Austen, Woolf, Rowling, Shelley and Christie like true literary experts.";
+  else if (score >= totalQuestions * 0.7) msg = "A wonderful evening at the Gala! You know your authors well. A quick look at the programme and you'll be perfect.";
+  else msg = "A good first visit to the Gala! Read the programme at the start again, then come back and try once more.";
+  document.getElementById("finalMsg").textContent = msg;
+  confetti();
+}
+
+document.getElementById("startBtn").onclick = () => {
+  document.getElementById("intro").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  document.getElementById("scoreTotal").textContent = totalQuestions;
+  renderStationHeader();
+  renderQuestion();
+};
+
+document.getElementById("retryBtn").onclick = () => {
+  current = 0; qIndex = 0; score = 0; answered = false;
+  document.getElementById("final").classList.add("hidden");
+  document.getElementById("game").classList.remove("hidden");
+  renderStationHeader();
+  renderQuestion();
+};
+
+let confRaf;
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = document.getElementById("confetti");
+  const ctx = cv.getContext("2d");
+  cv.hidden = false; cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ["#e3b94d", "#47c08a", "#e2584c", "#f3efe2", "#9db8ad"];
+  const ps = Array.from({ length: 140 }, () => ({
+    x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .6,
+    vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 3,
+    r: Math.random() * 6, s: 5 + Math.random() * 6,
+    c: cols[Math.floor(Math.random() * cols.length)], w: Math.random() * .2
+  }));
+  let f = 0;
+  (function step() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.r += p.w;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    });
+    if (++f < 240) confRaf = requestAnimationFrame(step);
+    else { cancelAnimationFrame(confRaf); cv.hidden = true; }
+  })();
+}
+</script>
+
+</body>
+</html>
