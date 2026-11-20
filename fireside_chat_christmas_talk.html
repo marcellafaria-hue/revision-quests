@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Fireside Tales: Christmas Folklore Curiosities</title>
+<style>
+  :root {
+    --bg: #1a0e09;
+    --bg2: #2b1710;
+    --ember: #ff8a3d;
+    --gold: #f2c35b;
+    --cream: #f8eddb;
+    --ink: #2a1a12;
+    --muted: #c9ab94;
+    --pine: #2f6b4f;
+    --red: #b23a48;
+    --line: #4a2c1e;
+    --green: #3fa56f;
+  }
+  * { box-sizing: border-box; }
+  [hidden], .hidden { display: none !important; }
+  html, body { background: var(--bg); }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--cream);
+    background: radial-gradient(ellipse at 50% 120%, #5a2a12 0%, var(--bg2) 38%, var(--bg) 75%);
+  }
+  .glow {
+    position: fixed; left: 0; right: 0; bottom: -80px; height: 320px; pointer-events: none; z-index: 0;
+    background: radial-gradient(ellipse at 50% 100%, rgba(255,138,61,.5), rgba(255,138,61,.12) 45%, transparent 70%);
+    animation: flicker 3.2s ease-in-out infinite alternate;
+  }
+  @keyframes flicker {
+    0% { opacity: .75; transform: scale(1); }
+    35% { opacity: 1; transform: scale(1.03); }
+    60% { opacity: .85; transform: scale(.99); }
+    100% { opacity: 1; transform: scale(1.04); }
+  }
+  .wrap { position: relative; z-index: 1; max-width: 760px; margin: 0 auto; padding: 28px 18px 90px; }
+  h1, h2, h3 { margin: 0; }
+
+  /* Intro */
+  #intro { text-align: center; padding-top: 10px; }
+  #intro .icon { font-size: 3rem; }
+  #intro h1 { margin: 8px 0 8px; font-size: clamp(1.7rem, 6vw, 2.4rem); color: var(--gold); line-height: 1.15; }
+  #intro p { margin: 0 auto 10px; max-width: 560px; color: var(--muted); font-size: 1.02rem; line-height: 1.6; }
+  .howto {
+    margin: 20px auto; max-width: 560px; text-align: left; background: rgba(0,0,0,.3); border: 1px solid var(--line);
+    border-radius: 14px; padding: 16px 20px;
+  }
+  .howto h3 { color: var(--gold); font-size: 1rem; margin-bottom: 8px; }
+  .howto ul { margin: 0; padding-left: 20px; line-height: 1.7; font-size: .95rem; }
+
+  .btn {
+    display: inline-block; margin-top: 14px; border: none; border-radius: 999px; padding: 13px 28px;
+    font-family: inherit; font-size: 1.02rem; font-weight: bold; cursor: pointer;
+    background: var(--ember); color: #2a1100; box-shadow: 0 10px 26px rgba(0,0,0,.35);
+  }
+  .btn:hover { filter: brightness(1.08); }
+  .btn.ghost { background: transparent; color: var(--gold); border: 2px solid var(--gold); box-shadow: none; padding: 10px 18px; font-size: .92rem; margin-top: 0; }
+  button:focus-visible { outline: 3px solid var(--gold); outline-offset: 3px; }
+
+  /* Game chrome */
+  #scorepill { text-align: center; font-size: .95rem; font-weight: bold; color: var(--gold); margin-bottom: 6px; }
+  #progress { display: flex; justify-content: center; gap: 6px; margin: 10px 0 8px; flex-wrap: wrap; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--line); border: 2px solid var(--line); }
+  .dot.done { background: var(--green); border-color: var(--green); }
+  .dot.current { background: var(--ember); border-color: var(--gold); }
+  #stationHeader { text-align: center; margin-bottom: 8px; }
+  #stationHeader .icon { font-size: 2.1rem; }
+  #stationHeader h2 { font-size: 1.22rem; color: var(--gold); margin-top: 4px; }
+  #stationHeader p { font-size: .88rem; color: var(--muted); margin: 2px 0 0; font-style: italic; }
+
+  /* Cards */
+  .card {
+    background: var(--cream); color: var(--ink); border-radius: 18px; padding: 24px 22px 22px;
+    box-shadow: 0 24px 60px rgba(0,0,0,.5); border-top: 12px solid var(--red); margin-top: 14px;
+    animation: pop .35s ease;
+  }
+  @keyframes pop { from { transform: translateY(10px) scale(.98); opacity: .2; } }
+
+  .reading h3 { font-size: 1.35rem; color: var(--red); margin-bottom: 10px; }
+  .reading p { font-size: 1.06rem; line-height: 1.7; margin: 0 0 12px; }
+  .reading .rtitle { font-size: 1.05rem; color: var(--red); margin: 18px 0 8px; font-weight: bold; }
+  .words { margin-top: 14px; padding: 12px 16px; background: #e7f0e9; border: 2px dashed var(--pine); border-radius: 12px; font-size: .95rem; line-height: 1.6; }
+  .words b.t { color: var(--pine); display: block; font-size: .78rem; text-transform: uppercase; letter-spacing: .08em; margin-bottom: 2px; }
+  .words span { display: block; }
+  .words span b { color: var(--ink); }
+
+  .textpanel { margin-bottom: 18px; padding: 16px 18px; background: #fffaf0; border: 2px solid #e1cdac; border-radius: 12px; max-height: 340px; overflow-y: auto; }
+  .textpanel p { font-size: 1rem; line-height: 1.65; margin: 0 0 10px; }
+  .textpanel .rtitle { font-size: 1rem; color: var(--red); margin: 12px 0 6px; font-weight: bold; }
+  .textpanel .rtitle:first-child { margin-top: 0; }
+
+  .qtext { font-size: 1.15rem; line-height: 1.45; margin: 0 0 16px; font-weight: bold; }
+  .opts { display: grid; gap: 10px; }
+  .opt {
+    text-align: left; width: 100%; background: #fffaf0; border: 2px solid #d9c3a3; border-radius: 12px;
+    padding: 12px 14px; font-size: 1rem; font-family: inherit; cursor: pointer; color: var(--ink); line-height: 1.4;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--ember); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { border-color: var(--green); background: #e1f3e8; color: #1f5b3b; font-weight: bold; }
+  .opt.wrong { border-color: var(--red); background: #f7e3e1; color: #7e2d2d; text-decoration: line-through; }
+  .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: .96rem; line-height: 1.45; }
+  .feedback.good { background: #e1f3e8; border-left: 4px solid var(--green); color: #1f5b3b; }
+  .feedback.bad { background: #f7e3e1; border-left: 4px solid var(--red); color: #7e2d2d; }
+  .toprow { display: flex; justify-content: flex-end; margin-bottom: 12px; }
+  .toprow .btn.ghost { color: var(--red); border-color: var(--red); }
+  .nextrow { text-align: right; margin-top: 12px; }
+
+  /* Final */
+  #final { text-align: center; padding-top: 24px; }
+  #final .icon { font-size: 3.2rem; }
+  #final h2 { font-size: 1.8rem; color: var(--gold); margin: 10px 0 6px; }
+  #final .finalscore { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; }
+  #final p.msg { max-width: 520px; margin: 0 auto 16px; color: var(--muted); font-size: 1.02rem; line-height: 1.6; }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
+</style>
+</head>
+<body>
+
+<div class="glow" aria-hidden="true"></div>
+
+<div class="wrap">
+
+  <div id="intro">
+    <div class="icon">🔥</div>
+    <h1>The Fireside Tales<br>Christmas Folklore Curiosities</h1>
+    <p>Test week is over, so here's a cozy, optional activity just for you. Sit by the fire, read four short texts about surprising Christmas legends from around the world, and answer a few questions about them. No pressure, just good stories.</p>
+
+    <div class="howto">
+      <h3>📖 How it works</h3>
+      <ul>
+        <li>There are <b>4 short texts</b>. After each one, you answer <b>4 questions</b>. Then there is a final round with questions about all four texts.</li>
+        <li>You can <b>look back at the text</b> at any time while you answer. Reading carefully is the point!</li>
+        <li>You'll see instantly if you're right, with a short explanation.</li>
+        <li>Each text has a small <b>word help</b> box for new vocabulary.</li>
+      </ul>
+    </div>
+
+    <button class="btn" id="startBtn">Sit by the fire →</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <div id="scorepill">⭐ <span id="scoreNum">0</span>/<span id="scoreTotal">20</span></div>
+    <div id="progress"></div>
+    <div id="stationHeader"></div>
+    <div id="main"></div>
+  </div>
+
+  <div id="final" class="hidden">
+    <div class="icon">🎁</div>
+    <h2>Happy Holidays!</h2>
+    <div class="finalscore">⭐ <span id="finalScore">0</span> / 20</div>
+    <p class="msg" id="finalMsg"></p>
+    <button class="btn" id="retryBtn">Read the tales again</button>
+  </div>
+
+</div>
+
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const STATIONS = [
+  {
+    title: "Tale 1 · Who Is Santa Claus?",
+    subtitle: "Read the text, then answer the questions",
+    icon: "🎅",
+    reading: {
+      title: "Who Is Santa Claus?",
+      paras: [
+        "Santa Claus is based on a real person. Saint Nicholas was a bishop who lived in the fourth century in a place that is now part of Turkey. He was famous for helping poor people, and many stories say that he gave gifts in secret.",
+        "In the Netherlands, children celebrate Sinterklaas, the Dutch name for Saint Nicholas. Every year, Sinterklaas arrives by steamboat from Spain. Children put a shoe by the fireplace with a carrot for his horse, and if they have been good, they find a small present in the morning.",
+        "Dutch settlers took this tradition to America, and slowly the name changed from Sinterklaas to Santa Claus. Many people think a famous soft-drink company invented Santa's red suit, but that isn't true. Santa was already wearing red in older pictures. The company's advertisements in the 1930s just helped to make the image famous all over the world."
+      ],
+      words: [["bishop", "a senior priest in the Christian church"], ["steamboat", "a boat that moves with the power of steam"], ["advertisements", "ads that try to make people buy something"]]
+    },
+    questions: [
+      {
+        prompt: "Who was the real Saint Nicholas?",
+        options: ["A Dutch sailor who lived in Spain", "A king who lived in America", "A bishop who lived in the fourth century", "A shopkeeper who sold toys"],
+        correct: 2,
+        good: "Right! Saint Nicholas was a bishop who lived in the fourth century, in what is now Turkey.",
+        bad: "Not quite. The text says he was a bishop who lived in the fourth century."
+      },
+      {
+        prompt: "According to the text, how does Sinterklaas arrive in the Netherlands?",
+        options: ["By steamboat from Spain", "By flying sleigh from the North Pole", "By train from Turkey", "On a horse from America"],
+        correct: 0,
+        good: "Yes! Every year, Sinterklaas arrives by steamboat from Spain.",
+        bad: "Not quite. The text says he arrives by steamboat from Spain."
+      },
+      {
+        prompt: "What does the text say about Santa's red suit?",
+        options: [
+          "It was invented in the 1930s by a drinks company",
+          "It was first worn by Saint Nicholas",
+          "It was a gift from Dutch settlers",
+          "It was already used in older pictures before the advertisements"
+        ],
+        correct: 3,
+        good: "Exactly! Santa was already wearing red in older pictures. The advertisements only made the image more famous.",
+        bad: "Not quite. The text says Santa was already wearing red in older pictures. The company's ads only made it famous."
+      },
+      {
+        prompt: "In the text, the word “settlers” means…",
+        options: [
+          "tourists who visit a country for a short time",
+          "people who move to a new place to live there",
+          "soldiers who fight in a war",
+          "traders who sell things in markets"
+        ],
+        correct: 1,
+        good: "Right! Settlers are people who move to a new place to live there.",
+        bad: "Not quite. Settlers are people who move to a new place to live there."
+      }
+    ]
+  },
+  {
+    title: "Tale 2 · The Dark Side of Christmas",
+    subtitle: "Spooky legends from the Alps and Iceland",
+    icon: "👹",
+    reading: {
+      title: "The Dark Side of Christmas",
+      paras: [
+        "Not all Christmas stories are sweet. In the Alps, in countries such as Austria and Germany, a scary creature called Krampus walks beside Saint Nicholas. Krampus has horns, chains and a long tongue, and the legend says that he frightens children who have behaved badly. On the night of 5 December, some towns even hold parades where people dress up as Krampus.",
+        "In Iceland, there are thirteen mischievous characters called the Yule Lads. They come down from the mountains one at a time during the thirteen nights before Christmas. Children leave a shoe on the windowsill, and the Lads leave a small gift for good children, or a rotten potato for naughty ones. They have funny names such as Door-Slammer and Spoon-Licker.",
+        "Iceland also has a giant Yule Cat. According to the legend, it eats people who don't get new clothes before Christmas. That's why many Icelanders still receive a piece of clothing as a present!"
+      ],
+      words: [["mischievous", "likes to play tricks and cause small problems"], ["windowsill", "the flat shelf at the bottom of a window"], ["rotten", "old and bad, not good to eat"]]
+    },
+    questions: [
+      {
+        prompt: "Which statement about Krampus is TRUE?",
+        options: [
+          "He gives presents to every child",
+          "He frightens children who have behaved badly",
+          "He lives in Iceland",
+          "He travels by steamboat"
+        ],
+        correct: 1,
+        good: "Yes! The legend says Krampus frightens children who have behaved badly.",
+        bad: "Not quite. According to the text, Krampus frightens children who have behaved badly."
+      },
+      {
+        prompt: "How many Yule Lads are there, and when do they visit?",
+        options: [
+          "Seven, on Christmas Day",
+          "Twelve, on New Year's Eve",
+          "Thirteen, all on the same night",
+          "Thirteen, one at a time before Christmas"
+        ],
+        correct: 3,
+        good: "Right! There are thirteen Yule Lads, and they come one at a time during the thirteen nights before Christmas.",
+        bad: "Not quite. There are thirteen Yule Lads, and they come one at a time before Christmas."
+      },
+      {
+        prompt: "What does a naughty child find in their shoe in Iceland?",
+        options: ["A rotten potato", "A piece of coal", "A broken toy", "A black cat"],
+        correct: 0,
+        good: "Yes! Naughty children get a rotten potato.",
+        bad: "Not quite. The text says naughty children get a rotten potato."
+      },
+      {
+        prompt: "Why do many Icelanders give clothes as Christmas presents?",
+        options: [
+          "Because the weather is very hot",
+          "Because Krampus likes colourful clothes",
+          "Because of the legend of the Yule Cat",
+          "Because shops give them for free"
+        ],
+        correct: 2,
+        good: "Right! In the legend, the Yule Cat eats people who don't get new clothes before Christmas.",
+        bad: "Not quite. It comes from the legend of the Yule Cat, which eats people who don't get new clothes."
+      }
+    ]
+  },
+  {
+    title: "Tale 3 · Magic in the Winter Night",
+    subtitle: "Talking animals, mistletoe and a legend about spiders",
+    icon: "🕷️",
+    reading: {
+      title: "Magic in the Winter Night",
+      paras: [
+        "Many old traditions say that Christmas Eve is a magical night. In some parts of Europe, people believed that animals could talk at midnight. Farmers waited quietly outside the barn, hoping to hear the cows speak, although some stories warn that it is unlucky to listen!",
+        "Another old custom comes from Britain: couples kiss under mistletoe. Some ancient peoples thought this plant had special powers because it stays green in winter, when other plants look dead.",
+        "In Ukraine, there is a legend about a poor family who could not afford any decorations for their Christmas tree. During the night, spiders covered the tree with webs. When the sun rose in the morning, its light turned the webs into shining silver and gold. Today, many Ukrainian families hang a spider ornament on their tree, and finding it is said to bring good luck."
+      ],
+      words: [["barn", "a farm building for animals or food"], ["webs", "the thin nets that spiders make"], ["ornament", "a small decoration"]]
+    },
+    questions: [
+      {
+        prompt: "What did some Europeans believe about Christmas Eve?",
+        options: [
+          "That the sun never rose",
+          "That trees could walk",
+          "That mistletoe could talk",
+          "That animals could speak at midnight"
+        ],
+        correct: 3,
+        good: "Yes! In some parts of Europe, people believed animals could talk at midnight.",
+        bad: "Not quite. Some people believed that animals could speak at midnight on Christmas Eve."
+      },
+      {
+        prompt: "Why did some ancient peoples think mistletoe was special?",
+        options: [
+          "Because it only grows in Britain",
+          "Because it is very expensive",
+          "Because it stays green in winter",
+          "Because it makes people sleepy"
+        ],
+        correct: 2,
+        good: "Right! It stays green in winter, when other plants look dead.",
+        bad: "Not quite. The text says it stays green in winter, when other plants look dead."
+      },
+      {
+        prompt: "In the Ukrainian legend, what happened when the sun rose?",
+        options: [
+          "The spiders disappeared",
+          "The webs turned into shining silver and gold",
+          "The family found a present under the tree",
+          "The tree began to talk"
+        ],
+        correct: 1,
+        good: "Yes! The sunlight turned the webs into shining silver and gold.",
+        bad: "Not quite. When the sun rose, its light turned the webs into silver and gold."
+      },
+      {
+        prompt: "In the text, “could not afford” decorations means the family…",
+        options: [
+          "did not have enough money to buy them",
+          "was not allowed to use them",
+          "did not know how to make them",
+          "did not want to keep them"
+        ],
+        correct: 0,
+        good: "Right! If you can't afford something, you don't have enough money to buy it.",
+        bad: "Not quite. “Could not afford” means they didn't have enough money to buy decorations."
+      }
+    ]
+  },
+  {
+    title: "Tale 4 · Curious Christmas Firsts",
+    subtitle: "Cards, trees, a magic log and a famous letter",
+    icon: "💌",
+    reading: {
+      title: "Curious Christmas Firsts",
+      paras: [
+        "Some Christmas customs are younger than you think. The first Christmas card was made in London in 1843 by Sir Henry Cole, who was too busy to write letters to all his friends. One thousand cards were printed, and they cost one shilling each.",
+        "The Christmas tree tradition comes from Germany, but it became popular in Britain after a picture of Queen Victoria's family around a decorated tree appeared in a newspaper in 1848.",
+        "In Catalonia, in Spain, children take care of a smiling wooden log called Tió de Nadal. They “feed” it for weeks and cover it with a blanket. On Christmas Eve, they sing and hit it with sticks until it “gives” them sweets and small presents.",
+        "Finally, you have probably seen the word “Xmas”. Some people think it is modern and disrespectful, but the X is the Greek letter chi, the first letter of the Greek word for Christ. People have used it for hundreds of years."
+      ],
+      words: [["shilling", "an old British coin"], ["log", "a thick piece of a tree trunk"], ["chi", "a Greek letter, said “kai”"]]
+    },
+    questions: [
+      {
+        prompt: "Why did Sir Henry Cole make the first Christmas card?",
+        options: [
+          "Because he sold paper",
+          "Because he was too busy to write letters to all his friends",
+          "Because the Queen asked him to",
+          "Because he wanted to win a prize"
+        ],
+        correct: 1,
+        good: "Right! He was too busy to write letters to all his friends.",
+        bad: "Not quite. The text says he was too busy to write letters to all his friends."
+      },
+      {
+        prompt: "How did the Christmas tree become popular in Britain?",
+        options: [
+          "A newspaper picture showed Queen Victoria's family around a decorated tree",
+          "A German king brought thousands of trees",
+          "Children planted trees in every town",
+          "A famous poem described a magical tree"
+        ],
+        correct: 0,
+        good: "Yes! A picture of Queen Victoria's family around a decorated tree appeared in a newspaper in 1848.",
+        bad: "Not quite. It became popular after a newspaper picture of Queen Victoria's family around a decorated tree."
+      },
+      {
+        prompt: "What happens to the Tió de Nadal on Christmas Eve?",
+        options: [
+          "It is burnt in the street",
+          "It is painted by the children",
+          "It is sent to Santa",
+          "Children hit it with sticks until it “gives” them sweets"
+        ],
+        correct: 3,
+        good: "Right! The children sing and hit it with sticks until it “gives” them sweets and small presents.",
+        bad: "Not quite. On Christmas Eve, children sing and hit it with sticks until it “gives” them sweets."
+      },
+      {
+        prompt: "What does the X in “Xmas” stand for?",
+        options: [
+          "A kiss",
+          "The number ten",
+          "The first letter of the Greek word for Christ",
+          "A modern text-message abbreviation"
+        ],
+        correct: 2,
+        good: "Yes! X is the Greek letter chi, the first letter of the Greek word for Christ.",
+        bad: "Not quite. The X is the Greek letter chi, the first letter of the Greek word for Christ."
+      }
+    ]
+  },
+  {
+    title: "Final Fireside · Folklore Mix",
+    subtitle: "Questions about all four tales. You can read the texts again!",
+    icon: "🏆",
+    review: true,
+    questions: [
+      {
+        prompt: "Which two traditions involve children putting shoes out for visitors?",
+        options: [
+          "Krampus and the Tió de Nadal",
+          "The Yule Cat and the Christmas spider",
+          "Sinterklaas and the Yule Lads",
+          "Mistletoe and Xmas"
+        ],
+        correct: 2,
+        good: "Right! Dutch children put a shoe by the fireplace for Sinterklaas, and Icelandic children put a shoe on the windowsill for the Yule Lads.",
+        bad: "Not quite. It's Sinterklaas (Tale 1) and the Yule Lads (Tale 2)."
+      },
+      {
+        prompt: "Which statement is NOT true, according to the texts?",
+        options: [
+          "Saint Nicholas was a real bishop",
+          "Krampus appears in legends from the Alps",
+          "The first Christmas card was printed in 1843",
+          "A drinks company invented Santa's red suit"
+        ],
+        correct: 3,
+        good: "Exactly! Santa was already wearing red in older pictures. This is a popular myth.",
+        bad: "Not quite. The false statement is that a drinks company invented Santa's red suit."
+      },
+      {
+        prompt: "Which tradition comes from Ukraine?",
+        options: [
+          "Hanging a spider ornament on the tree",
+          "Hitting a wooden log with sticks",
+          "Leaving a shoe on the windowsill",
+          "Kissing under mistletoe"
+        ],
+        correct: 0,
+        good: "Right! Many Ukrainian families hang a spider ornament on their tree for good luck.",
+        bad: "Not quite. The spider ornament comes from Ukraine (Tale 3)."
+      },
+      {
+        prompt: "What is the main idea of the four texts?",
+        options: [
+          "Christmas is only celebrated in Europe",
+          "Christmas customs and legends are different around the world, and many have surprising stories behind them",
+          "Children should always behave well at Christmas",
+          "Presents are the most important part of Christmas"
+        ],
+        correct: 1,
+        good: "Exactly! Christmas folklore is full of surprising legends from many different places.",
+        bad: "Not quite. The main idea is that Christmas customs and legends differ around the world and often have surprising stories."
+      }
+    ]
+  }
+];
+
+let current = 0, qIndex = 0, score = 0, answered = false, phase = "read", textOpen = false;
+const totalQuestions = STATIONS.reduce((n, s) => n + s.questions.length, 0);
+const $ = id => document.getElementById(id);
+
+function flatIndex() {
+  let n = 0;
+  for (let i = 0; i < current; i++) n += STATIONS[i].questions.length;
+  return n + qIndex;
+}
+
+function renderProgress() {
+  const el = $("progress");
+  el.innerHTML = "";
+  const done = phase === "read" ? flatIndex() : flatIndex();
+  for (let i = 0; i < totalQuestions; i++) {
+    const d = document.createElement("div");
+    d.className = "dot" + (i < done ? " done" : (i === done && phase === "q") ? " current" : "");
+    el.appendChild(d);
+  }
+}
+
+function renderStationHeader() {
+  const s = STATIONS[current];
+  $("stationHeader").innerHTML = `<div class="icon">${s.icon}</div><h2>${s.title}</h2><p>${s.subtitle}</p>`;
+}
+
+function textHTML(cls) {
+  const s = STATIONS[current];
+  const list = s.review ? STATIONS.filter(x => x.reading) : [s];
+  return list.map(x => {
+    const r = x.reading;
+    return `<div class="rtitle">${r.title}</div>` + r.paras.map(p => `<p>${p}</p>`).join("");
+  }).join("");
+}
+
+function renderReading() {
+  phase = "read";
+  textOpen = false;
+  renderProgress();
+  const s = STATIONS[current];
+  $("scoreNum").textContent = score;
+  let html = "";
+  if (s.review) {
+    html = `<div class="card reading"><h3>Final round</h3>
+      <p>Now it's time to remember all four tales. You'll answer ${s.questions.length} questions. Don't worry: you can open the texts again while you answer.</p>
+      <div style="text-align:center"><button class="btn" id="goBtn">Start the final questions →</button></div></div>`;
+  } else {
+    const r = s.reading;
+    html = `<div class="card reading"><h3>${r.title}</h3>
+      ${r.paras.map(p => `<p>${p}</p>`).join("")}
+      <div class="words"><b class="t">Word help</b>${r.words.map(w => `<span><b>${w[0]}</b>: ${w[1]}</span>`).join("")}</div>
+      <div style="text-align:center"><button class="btn" id="goBtn">I've read it, show the questions →</button></div></div>`;
+  }
+  $("main").innerHTML = html;
+  $("goBtn").onclick = () => { phase = "q"; qIndex = 0; renderQuestion(); };
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function renderQuestion() {
+  phase = "q";
+  answered = false;
+  renderProgress();
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  $("scoreNum").textContent = score;
+  let html = `<div class="card">
+    <div class="toprow"><button class="btn ghost" id="textBtn" type="button">${textOpen ? "📖 Hide the text" : "📖 Read the text again"}</button></div>
+    ${textOpen ? `<div class="textpanel">${textHTML()}</div>` : ""}
+    <p class="qtext">${q.prompt}</p>
+    <div class="opts" id="opts"></div>
+    <div id="fb"></div>
+    <div class="nextrow" id="nextRow"></div></div>`;
+  $("main").innerHTML = html;
+  $("textBtn").onclick = () => { textOpen = !textOpen; renderQuestionKeep(); };
+  const optsDiv = $("opts");
+  q.options.forEach((opt, i) => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = opt;
+    b.onclick = () => selectAnswer(i);
+    optsDiv.appendChild(b);
+  });
+}
+
+/* Re-render the question after toggling the text, keeping an answered state */
+let lastPick = null;
+function renderQuestionKeep() {
+  const wasAnswered = answered, pick = lastPick;
+  const keepScore = score;
+  renderQuestion();
+  score = keepScore;
+  $("scoreNum").textContent = score;
+  if (wasAnswered) {
+    answered = false;
+    applyAnswer(pick, false);
+  }
+}
+
+function selectAnswer(i) {
+  if (answered) return;
+  lastPick = i;
+  applyAnswer(i, true);
+}
+
+function applyAnswer(i, count) {
+  answered = true;
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  document.querySelectorAll("#opts .opt").forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === q.correct) b.classList.add("correct");
+    else if (idx === i) b.classList.add("wrong");
+  });
+  if (i === q.correct) {
+    if (count) { score++; $("scoreNum").textContent = score; }
+    $("fb").innerHTML = `<div class="feedback good">✅ ${q.good}</div>`;
+  } else {
+    $("fb").innerHTML = `<div class="feedback bad">❌ ${q.bad}</div>`;
+  }
+  const isLastQ = qIndex === s.questions.length - 1;
+  const isLastStation = current === STATIONS.length - 1;
+  $("nextRow").innerHTML = `<button class="btn" id="nextBtn">${isLastQ && isLastStation ? "See my results →" : isLastQ ? "Next tale →" : "Next question →"}</button>`;
+  $("nextBtn").onclick = advance;
+}
+
+function advance() {
+  const s = STATIONS[current];
+  if (qIndex < s.questions.length - 1) {
+    qIndex++;
+    renderQuestion();
+  } else if (current < STATIONS.length - 1) {
+    current++;
+    qIndex = 0;
+    renderStationHeader();
+    renderReading();
+  } else {
+    showFinal();
+  }
+}
+
+function showFinal() {
+  $("game").classList.add("hidden");
+  $("final").classList.remove("hidden");
+  $("finalScore").textContent = score;
+  let msg;
+  if (score === totalQuestions) msg = "A perfect reading! You understood every tale. Now you have some great Christmas curiosities to share with your family.";
+  else if (score >= totalQuestions * 0.7) msg = "Well done! You read carefully and understood most of the tales. A second read could make it perfect.";
+  else msg = "Good effort! Reading in a second language is hard work. Read the tales again, slowly, and try once more.";
+  $("finalMsg").textContent = msg;
+  confetti();
+}
+
+$("startBtn").onclick = () => {
+  $("intro").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  $("scoreTotal").textContent = totalQuestions;
+  renderStationHeader();
+  renderReading();
+};
+
+$("retryBtn").onclick = () => {
+  current = 0; qIndex = 0; score = 0; answered = false; lastPick = null;
+  $("final").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  renderStationHeader();
+  renderReading();
+};
+
+let confRaf;
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = $("confetti");
+  const ctx = cv.getContext("2d");
+  cv.hidden = false; cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ["#ff8a3d", "#f2c35b", "#3fa56f", "#b23a48", "#f8eddb"];
+  const ps = Array.from({ length: 140 }, () => ({
+    x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .6,
+    vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 3,
+    r: Math.random() * 6, s: 5 + Math.random() * 6,
+    c: cols[Math.floor(Math.random() * cols.length)], w: Math.random() * .2
+  }));
+  let f = 0;
+  (function step() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.r += p.w;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    });
+    if (++f < 240) confRaf = requestAnimationFrame(step);
+    else { cancelAnimationFrame(confRaf); cv.hidden = true; }
+  })();
+}
+</script>
+
+</body>
+</html>
