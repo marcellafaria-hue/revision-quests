@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A Christmas Carol: The Three Spirits Quiz</title>
+<style>
+  :root {
+    --night: #12141d;
+    --fog: #20242f;
+    --fog-hi: #2b303d;
+    --gas: #f0c060;
+    --gas-dark: #c99a38;
+    --paper: #efe6d2;
+    --muted: #a9b0c0;
+    --ghost: #8fb3d9;
+    --green: #4fae7b;
+    --red: #d8605a;
+    --line: #353b4c;
+    --card-shadow: 0 18px 40px rgba(0,0,0,.5);
+  }
+  * { box-sizing: border-box; }
+  [hidden], .hidden { display: none !important; }
+  html, body { background: var(--night); }
+  body {
+    margin: 0; min-height: 100vh;
+    font-family: Georgia, 'Times New Roman', serif;
+    color: var(--paper);
+    background:
+      radial-gradient(circle at 80% 0%, rgba(240,192,96,.16), transparent 40%),
+      radial-gradient(ellipse at 50% 110%, rgba(143,179,217,.12), transparent 55%),
+      var(--night);
+  }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 28px 18px 60px; }
+  h1, h2, h3 { margin: 0; }
+
+  /* Intro */
+  #intro { text-align: center; padding-top: 18px; }
+  #intro .seal { font-size: 3.2rem; }
+  #intro h1 { font-size: clamp(1.7rem, 6vw, 2.5rem); margin: 10px 0 6px; color: var(--gas); line-height: 1.15; }
+  #intro p.lead { font-size: 1.02rem; line-height: 1.6; color: var(--muted); max-width: 580px; margin: 0 auto 10px; }
+  .panel {
+    margin: 20px auto; text-align: left; background: var(--fog); border: 1px solid var(--line);
+    border-radius: 14px; padding: 18px 20px; box-shadow: var(--card-shadow);
+  }
+  .panel h3 { color: var(--gas); font-size: 1.02rem; margin-bottom: 8px; }
+  .panel ul { margin: 0; padding-left: 20px; line-height: 1.7; font-size: .95rem; }
+  .panel li b { color: var(--gas); }
+  .panel p { margin: 8px 0 0; font-size: .93rem; line-height: 1.6; color: var(--muted); }
+  .panel a { color: var(--ghost); }
+  .panel.must { border-color: var(--gas); }
+  .btn {
+    display: inline-block; margin-top: 14px; padding: 13px 30px; border: none; border-radius: 999px;
+    background: var(--gas); color: #241a05; font-size: 1.02rem; font-weight: bold; cursor: pointer;
+    font-family: Georgia, serif; box-shadow: var(--card-shadow);
+  }
+  .btn:hover { background: var(--gas-dark); }
+  .btn.secondary { background: transparent; color: var(--gas); border: 2px solid var(--gas); box-shadow: none; }
+  button:focus-visible, a:focus-visible { outline: 3px solid var(--gas); outline-offset: 3px; }
+
+  /* Progress */
+  #progress { display: flex; justify-content: center; gap: 6px; margin: 18px 0 6px; flex-wrap: wrap; }
+  .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--line); border: 2px solid var(--line); }
+  .dot.done { background: var(--green); border-color: var(--green); }
+  .dot.current { background: var(--gas); border-color: var(--gas-dark); }
+  #scorepill { text-align: center; font-size: .95rem; font-weight: bold; color: var(--gas); margin-bottom: 6px; }
+
+  #stationHeader { text-align: center; margin-bottom: 10px; }
+  #stationHeader .icon { font-size: 2.1rem; }
+  #stationHeader h2 { font-size: 1.22rem; color: var(--gas); margin-top: 4px; }
+  #stationHeader p { font-size: .88rem; color: var(--muted); margin: 2px 0 0; font-style: italic; }
+
+  .card {
+    background: var(--fog); border: 1px solid var(--line); border-radius: 16px;
+    padding: 22px 20px; box-shadow: var(--card-shadow); margin-top: 14px;
+  }
+  .qtext { font-size: 1.1rem; line-height: 1.45; margin-bottom: 16px; font-weight: bold; }
+  .opts { display: grid; gap: 10px; }
+  .opt {
+    text-align: left; width: 100%; background: var(--fog-hi); border: 2px solid var(--line); border-radius: 12px;
+    padding: 12px 14px; font-size: .98rem; font-family: inherit; cursor: pointer; color: var(--paper); line-height: 1.4;
+  }
+  .opt:hover:not(:disabled) { border-color: var(--gas); }
+  .opt:disabled { cursor: default; }
+  .opt.correct { border-color: var(--green); background: rgba(79,174,123,.18); color: #c9f2dc; font-weight: bold; }
+  .opt.wrong { border-color: var(--red); background: rgba(216,96,90,.18); color: #f5c9c6; text-decoration: line-through; }
+  .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: .94rem; line-height: 1.45; }
+  .feedback.good { background: rgba(79,174,123,.14); border-left: 4px solid var(--green); color: #c9f2dc; }
+  .feedback.bad { background: rgba(216,96,90,.14); border-left: 4px solid var(--red); color: #f5c9c6; }
+  .nextrow { text-align: right; margin-top: 14px; }
+
+  #final { text-align: center; padding-top: 24px; }
+  #final .seal { font-size: 3.4rem; }
+  #final h2 { font-size: 1.8rem; color: var(--gas); margin: 10px 0 6px; }
+  #final .finalscore { font-size: 1.3rem; font-weight: bold; margin-bottom: 10px; }
+  #final p.msg { max-width: 540px; margin: 0 auto 18px; color: var(--muted); font-size: 1.02rem; line-height: 1.6; }
+  #confetti { position: fixed; inset: 0; pointer-events: none; z-index: 30; }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <div id="intro">
+    <div class="seal">👻</div>
+    <h1>A Christmas Carol<br>The Three Spirits Quiz</h1>
+    <p class="lead">Can you remember what happens to Ebenezer Scrooge on one very strange Christmas Eve? A cozy, optional quiz for the holidays, based on Charles Dickens's famous story (1843).</p>
+
+    <div class="panel must">
+      <h3>📚 Step 1: Before you play, read it or watch it!</h3>
+      <ul>
+        <li><b>📖 Read it.</b> <i>A Christmas Carol</i> is a short book (a novella), and it is free online: <a href="https://www.gutenberg.org/ebooks/46" target="_blank" rel="noopener">Project Gutenberg</a>. You can also read it in a school library or in an adapted version.</li>
+        <li><b>🎬 Or watch a film adaptation.</b> For example: <i>Scrooge</i> (1951), <i>The Muppet Christmas Carol</i> (1992) or Disney's <i>A Christmas Carol</i> (2009). Ask someone at home which one to choose.</li>
+      </ul>
+      <p>Films change some small details. The questions follow the main story, but if your film is different from a question, the book is the reference.</p>
+    </div>
+
+    <div class="panel">
+      <h3>🕯️ Who's who?</h3>
+      <ul>
+        <li><b>Ebenezer Scrooge:</b> a rich, mean old businessman</li>
+        <li><b>Jacob Marley:</b> Scrooge's old business partner, who is dead</li>
+        <li><b>Bob Cratchit:</b> Scrooge's poor clerk (office worker)</li>
+        <li><b>Tiny Tim:</b> Bob Cratchit's youngest son</li>
+        <li><b>Fred:</b> Scrooge's cheerful nephew</li>
+      </ul>
+    </div>
+
+    <button class="btn" id="startBtn">I've read or watched it. Start the quiz →</button>
+  </div>
+
+  <div id="game" class="hidden">
+    <div id="scorepill">⭐ <span id="scoreNum">0</span>/<span id="scoreTotal">24</span></div>
+    <div id="progress"></div>
+    <div id="stationHeader"></div>
+    <div class="card" id="qCard"></div>
+  </div>
+
+  <div id="final" class="hidden">
+    <div class="seal">🎄</div>
+    <h2>Merry Christmas!</h2>
+    <div class="finalscore">⭐ <span id="finalScore">0</span> / 24</div>
+    <p class="msg" id="finalMsg"></p>
+    <button class="btn secondary" id="retryBtn">Play again</button>
+  </div>
+
+</div>
+
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const STATIONS = [
+  {
+    title: "Stave 1 · A Cold Christmas Eve",
+    subtitle: "Scrooge, his nephew and a very unwelcome visitor",
+    icon: "🕯️",
+    questions: [
+      {
+        prompt: "How does Scrooge react when his nephew wishes him a Merry Christmas?",
+        options: ["He invites him to dinner", "He sings a carol", "He says “Bah! Humbug!”", "He gives him a present"],
+        correct: 2,
+        good: "Right! “Bah! Humbug!” shows that Scrooge thinks Christmas is nonsense.",
+        bad: "Not quite. Scrooge answers with “Bah! Humbug!”"
+      },
+      {
+        prompt: "Two gentlemen ask Scrooge for money to help the poor at Christmas. How does he answer?",
+        options: [
+          "He asks if there aren't prisons and workhouses for the poor already",
+          "He gives them all his money",
+          "He asks them to come back next Christmas",
+          "He offers the poor a job in his office"
+        ],
+        correct: 0,
+        good: "Yes! Scrooge says the poor can go to prisons and workhouses, so he doesn't need to help.",
+        bad: "Not quite. Scrooge refuses and asks if there aren't prisons and workhouses for the poor."
+      },
+      {
+        prompt: "Jacob Marley's ghost drags a long chain. What is it made of?",
+        options: ["Gold coins and jewels", "Christmas lights", "Iron and snow", "Cash-boxes, keys, padlocks and ledgers"],
+        correct: 3,
+        good: "Exactly! Marley's chain is made of money things because he cared only about money in life.",
+        bad: "Not quite. The chain is made of cash-boxes, keys, padlocks and ledgers: the things he loved in life."
+      },
+      {
+        prompt: "What does Marley's ghost tell Scrooge?",
+        options: [
+          "That he will become even richer",
+          "That three spirits will visit him",
+          "That Christmas will be cancelled",
+          "That Marley wants his job back"
+        ],
+        correct: 1,
+        good: "Yes! Marley warns that three spirits will come, so that Scrooge can still change.",
+        bad: "Not quite. Marley warns Scrooge that three spirits will visit him."
+      }
+    ]
+  },
+  {
+    title: "Stave 2 · The Ghost of Christmas Past",
+    subtitle: "Scenes from Scrooge's own life",
+    icon: "🕰️",
+    questions: [
+      {
+        prompt: "What does the Ghost of Christmas Past show Scrooge?",
+        options: [
+          "Scenes from next Christmas",
+          "Scenes from his own childhood and youth",
+          "The home of Bob Cratchit",
+          "A trip to a foreign country"
+        ],
+        correct: 1,
+        good: "Right! The Ghost takes Scrooge back to see his own past.",
+        bad: "Not quite. The Ghost of Christmas Past shows scenes from Scrooge's own childhood and youth."
+      },
+      {
+        prompt: "What happened to young Scrooge at school at Christmas time?",
+        options: [
+          "He was being punished",
+          "He was ill in bed",
+          "He wanted to study",
+          "The other children went home, but he was left alone"
+        ],
+        correct: 3,
+        good: "Yes! A lonely little Scrooge stays at school while the other children go home.",
+        bad: "Not quite. The other children went home for Christmas, but he was left alone."
+      },
+      {
+        prompt: "What kind of boss was Mr Fezziwig, Scrooge's first employer?",
+        options: [
+          "A kind boss who gave a joyful Christmas party",
+          "A greedy boss like Scrooge",
+          "A boss who hated Christmas",
+          "A boss who never paid his workers"
+        ],
+        correct: 0,
+        good: "Right! Mr Fezziwig was generous, and his Christmas party made everyone happy.",
+        bad: "Not quite. Mr Fezziwig was a kind and generous boss who gave a joyful Christmas party."
+      },
+      {
+        prompt: "Why did Belle end her engagement to Scrooge?",
+        options: [
+          "She moved to another country",
+          "She fell in love with Marley",
+          "He had started to love money more than her",
+          "Her family said no"
+        ],
+        correct: 2,
+        good: "Yes. Scrooge loved money more and more, and Belle felt she was losing him.",
+        bad: "Not quite. Belle ended it because Scrooge loved money more than her."
+      }
+    ]
+  },
+  {
+    title: "Stave 3 · The Ghost of Christmas Present",
+    subtitle: "A very jolly giant and a family that has little",
+    icon: "🍗",
+    questions: [
+      {
+        prompt: "What does the Ghost of Christmas Present look like?",
+        options: [
+          "A small child with a bright light",
+          "A tall figure in a black hooded cloak",
+          "A ghost wearing chains",
+          "A jolly giant in a green robe"
+        ],
+        correct: 3,
+        good: "Yes! A big, cheerful giant in a green robe, surrounded by food.",
+        bad: "Not quite. The Ghost of Christmas Present is a jolly giant in a green robe."
+      },
+      {
+        prompt: "What does the Cratchit family eat for Christmas dinner, and how do they feel?",
+        options: [
+          "A huge feast, and they complain about it",
+          "A small goose and a pudding, and they are happy and grateful",
+          "Nothing, and they are very angry",
+          "Turkey and champagne, with a rich family"
+        ],
+        correct: 1,
+        good: "Right! They are poor, but they enjoy their small dinner and each other's company.",
+        bad: "Not quite. They have a small goose and a pudding, and they are happy and grateful."
+      },
+      {
+        prompt: "What is wrong with Tiny Tim?",
+        options: [
+          "He is very rich",
+          "He is lost in London",
+          "He is ill and walks with a crutch",
+          "He is Scrooge's nephew"
+        ],
+        correct: 2,
+        good: "Yes. Tiny Tim is a sweet, ill little boy who walks with a crutch.",
+        bad: "Not quite. Tiny Tim is ill and walks with a crutch."
+      },
+      {
+        prompt: "Who are Ignorance and Want?",
+        options: [
+          "Two poor, hungry children hidden under the Ghost's robe",
+          "Two of Scrooge's old friends",
+          "Marley's business partners",
+          "Two servants of the Cratchit family"
+        ],
+        correct: 0,
+        good: "Right! They show what happens to poor children when nobody helps them.",
+        bad: "Not quite. Ignorance and Want are two poor, hungry children hidden under the Ghost's robe."
+      }
+    ]
+  },
+  {
+    title: "Stave 4 · The Ghost of Christmas Yet to Come",
+    subtitle: "A silent spirit and a frightening future",
+    icon: "🪦",
+    questions: [
+      {
+        prompt: "How is the Ghost of Christmas Yet to Come different from the other two spirits?",
+        options: [
+          "It never speaks, it only points",
+          "It talks all the time",
+          "It sings carols",
+          "It is tiny and cheerful"
+        ],
+        correct: 0,
+        good: "Exactly! This dark, silent ghost never speaks. It only points.",
+        bad: "Not quite. The Ghost of Christmas Yet to Come never speaks. It only points."
+      },
+      {
+        prompt: "Scrooge hears people talking about a man who has died. How do they feel about him?",
+        options: [
+          "They are heartbroken and cry",
+          "They organise a big funeral",
+          "They don't care, and some even sell his belongings",
+          "They write a book about him"
+        ],
+        correct: 2,
+        good: "Yes. Nobody misses the man, which is a terrible warning for Scrooge.",
+        bad: "Not quite. Nobody cares that the man has died, and some even sell his belongings."
+      },
+      {
+        prompt: "What does the Ghost show about Tiny Tim's future?",
+        options: [
+          "He will become a doctor",
+          "He will die, unless things change",
+          "He will move to Scotland",
+          "He will inherit Scrooge's money"
+        ],
+        correct: 1,
+        good: "Right. If nothing changes, Tiny Tim will not live, and the Cratchits are heartbroken.",
+        bad: "Not quite. If nothing changes, Tiny Tim will die."
+      },
+      {
+        prompt: "What terrifying thing does Scrooge discover in the graveyard?",
+        options: [
+          "Marley's grave",
+          "Bob Cratchit's grave",
+          "Tiny Tim's grave",
+          "His own gravestone, with his name on it"
+        ],
+        correct: 3,
+        good: "Yes! The dead man was Scrooge himself. It's the moment he decides to change.",
+        bad: "Not quite. The gravestone has Scrooge's own name on it."
+      }
+    ]
+  },
+  {
+    title: "Stave 5 · The End of It",
+    subtitle: "Christmas morning",
+    icon: "🌅",
+    questions: [
+      {
+        prompt: "What does Scrooge do to surprise the Cratchit family?",
+        options: [
+          "He fires Bob",
+          "He sells his house",
+          "He sends them a huge prize turkey",
+          "He sends them a letter"
+        ],
+        correct: 2,
+        good: "Right! He sends a boy to buy the biggest turkey in the shop, and he sends it to the Cratchits.",
+        bad: "Not quite. Scrooge sends the Cratchits a huge prize turkey."
+      },
+      {
+        prompt: "How has Scrooge changed by the end of the story?",
+        options: [
+          "He has become even greedier",
+          "He has moved abroad",
+          "He has stopped speaking to everyone",
+          "He has become kind and generous"
+        ],
+        correct: 3,
+        good: "Yes! Scrooge becomes generous and keeps Christmas in his heart all year.",
+        bad: "Not quite. Scrooge becomes kind and generous."
+      },
+      {
+        prompt: "What happens to Tiny Tim at the end?",
+        options: [
+          "He dies",
+          "He lives, and Scrooge is like a second father to him",
+          "He leaves London",
+          "He becomes Scrooge's business partner"
+        ],
+        correct: 1,
+        good: "Right! Tiny Tim does not die. Scrooge helps the family and cares for him.",
+        bad: "Not quite. Tiny Tim lives, and Scrooge becomes like a second father to him."
+      },
+      {
+        prompt: "What is a main message of the story?",
+        options: [
+          "Kindness and generosity matter more than money, and people can change",
+          "Money is the most important thing",
+          "Ghosts are always dangerous",
+          "Winter is the best season"
+        ],
+        correct: 0,
+        good: "Exactly! Scrooge shows that it's never too late to become a better person.",
+        bad: "Not quite. The message is that kindness matters more than money, and people can change."
+      }
+    ]
+  },
+  {
+    title: "Final Stave · Dickens and the Big Picture",
+    subtitle: "The book, the writer and the word “scrooge”",
+    icon: "🏆",
+    questions: [
+      {
+        prompt: "Dickens divided the book into five chapters. What did he call them?",
+        options: ["Acts", "Staves", "Scenes", "Songs"],
+        correct: 1,
+        good: "Right! He called them staves, like the verses of a carol.",
+        bad: "Not quite. Dickens called the chapters “staves”, like the verses of a carol."
+      },
+      {
+        prompt: "<i>A Christmas Carol</i> is a novella. What is a novella?",
+        options: ["A poem about Christmas", "A play", "A very long novel", "A short novel"],
+        correct: 3,
+        good: "Yes! A novella is a short novel, and you can read this one in a few hours.",
+        bad: "Not quite. A novella is a short novel."
+      },
+      {
+        prompt: "Dickens wrote the story in Victorian England. What was life like for many poor families then?",
+        options: [
+          "Very hard: many were poor and even children had to work",
+          "Easy: everyone received free food",
+          "Exciting: people travelled by plane",
+          "Comfortable: most people had big houses"
+        ],
+        correct: 0,
+        good: "Right! Dickens wanted readers to think about poor families and help them.",
+        bad: "Not quite. Life was very hard for many poor families, and even children had to work."
+      },
+      {
+        prompt: "Today, if someone calls you “a scrooge”, what do they mean?",
+        options: [
+          "You are a very generous person",
+          "You love parties",
+          "You hate spending money",
+          "You are afraid of ghosts"
+        ],
+        correct: 2,
+        good: "Yes! A scrooge is someone who hates spending money, like the Scrooge at the start of the story.",
+        bad: "Not quite. A scrooge is a person who hates spending money."
+      }
+    ]
+  }
+];
+
+let current = 0, score = 0, qIndex = 0, answered = false;
+const totalQuestions = STATIONS.reduce((n, s) => n + s.questions.length, 0);
+const $ = id => document.getElementById(id);
+
+function flatIndex() {
+  let n = 0;
+  for (let i = 0; i < current; i++) n += STATIONS[i].questions.length;
+  return n + qIndex;
+}
+function renderProgress() {
+  const el = $("progress");
+  el.innerHTML = "";
+  const done = flatIndex();
+  for (let i = 0; i < totalQuestions; i++) {
+    const d = document.createElement("div");
+    d.className = "dot" + (i < done ? " done" : i === done ? " current" : "");
+    el.appendChild(d);
+  }
+}
+function renderStationHeader() {
+  const s = STATIONS[current];
+  $("stationHeader").innerHTML = `<div class="icon">${s.icon}</div><h2>${s.title}</h2><p>${s.subtitle}</p>`;
+}
+function renderQuestion() {
+  answered = false;
+  const q = STATIONS[current].questions[qIndex];
+  $("scoreNum").textContent = score;
+  renderProgress();
+  $("qCard").innerHTML = `
+    <div class="qtext">${q.prompt}</div>
+    <div class="opts" id="opts"></div>
+    <div id="feedbackArea"></div>
+    <div class="nextrow" id="nextRow"></div>`;
+  q.options.forEach((opt, i) => {
+    const b = document.createElement("button");
+    b.className = "opt";
+    b.innerHTML = opt;
+    b.onclick = () => selectAnswer(i);
+    $("opts").appendChild(b);
+  });
+}
+function selectAnswer(i) {
+  if (answered) return;
+  answered = true;
+  const s = STATIONS[current];
+  const q = s.questions[qIndex];
+  document.querySelectorAll("#opts .opt").forEach((b, idx) => {
+    b.disabled = true;
+    if (idx === q.correct) b.classList.add("correct");
+    else if (idx === i) b.classList.add("wrong");
+  });
+  if (i === q.correct) {
+    score++;
+    $("scoreNum").textContent = score;
+    $("feedbackArea").innerHTML = `<div class="feedback good">✅ ${q.good}</div>`;
+  } else {
+    $("feedbackArea").innerHTML = `<div class="feedback bad">❌ ${q.bad}</div>`;
+  }
+  const isLast = current === STATIONS.length - 1 && qIndex === s.questions.length - 1;
+  $("nextRow").innerHTML = `<button class="btn" id="nextBtn">${isLast ? "See Results →" : "Next →"}</button>`;
+  $("nextBtn").onclick = advance;
+}
+function advance() {
+  const s = STATIONS[current];
+  if (qIndex < s.questions.length - 1) {
+    qIndex++;
+    renderQuestion();
+  } else if (current < STATIONS.length - 1) {
+    current++;
+    qIndex = 0;
+    renderStationHeader();
+    renderQuestion();
+  } else {
+    showFinal();
+  }
+}
+function showFinal() {
+  $("game").classList.add("hidden");
+  $("final").classList.remove("hidden");
+  $("finalScore").textContent = score;
+  let msg;
+  if (score === totalQuestions) msg = "Bah, humbug? Not you! A perfect score. You know A Christmas Carol like a true Christmas expert.";
+  else if (score >= totalQuestions * 0.7) msg = "Well done! You remember the story very well. Read or watch your favourite parts again to get a perfect score.";
+  else msg = "A good start! Read a few staves of the book, or watch the film again, and then try the quiz once more.";
+  $("finalMsg").textContent = msg;
+  confetti();
+}
+$("startBtn").onclick = () => {
+  $("intro").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  $("scoreTotal").textContent = totalQuestions;
+  renderStationHeader();
+  renderQuestion();
+};
+$("retryBtn").onclick = () => {
+  current = 0; qIndex = 0; score = 0; answered = false;
+  $("final").classList.add("hidden");
+  $("game").classList.remove("hidden");
+  renderStationHeader();
+  renderQuestion();
+};
+
+let confRaf;
+function confetti() {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const cv = $("confetti");
+  const ctx = cv.getContext("2d");
+  cv.hidden = false; cv.width = innerWidth; cv.height = innerHeight;
+  const cols = ["#f0c060", "#4fae7b", "#d8605a", "#efe6d2", "#8fb3d9"];
+  const ps = Array.from({ length: 140 }, () => ({
+    x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .6,
+    vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 3,
+    r: Math.random() * 6, s: 5 + Math.random() * 6,
+    c: cols[Math.floor(Math.random() * cols.length)], w: Math.random() * .2
+  }));
+  let f = 0;
+  (function step() {
+    ctx.clearRect(0, 0, cv.width, cv.height);
+    ps.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.r += p.w;
+      ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.r);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s / 2, -p.s / 4, p.s, p.s / 2);
+      ctx.restore();
+    });
+    if (++f < 240) confRaf = requestAnimationFrame(step);
+    else { cancelAnimationFrame(confRaf); cv.hidden = true; }
+  })();
+}
+</script>
+
+</body>
+</html>
