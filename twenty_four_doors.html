@@ -1,0 +1,659 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Twenty-Four Doors</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Lexend:wght@400;600;700&display=swap">
+<style>
+/* Layout: a paper advent calendar on a snowy night street. 24 doors in a grid that swing open on a hinge; each opens a cream "card" with the activity. Single dark look by choice. */
+:root{
+  color-scheme:dark;
+  --night:#101C33; --night2:#18294A; --snow:#F4F1E8; --ink:#1C2236; --muted:#5D6276;
+  --cran:#B23A48; --pine:#2E6B57; --mustard:#D9A441; --ice:#8FB8D6; --plum:#6D4C7D; --cream:#F1E6CF;
+  --good:#2E6B57;
+  --f-display:"Bagel Fat One", "Arial Rounded MT Bold", "Arial Black", system-ui, sans-serif;
+  --f-body:"Lexend", "Segoe UI", system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{background:var(--night)}
+body{color:var(--snow);font-family:var(--f-body);font-size:16px;line-height:1.5;min-height:100vh}
+#snow{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px))}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:3px solid var(--mustard);outline-offset:3px}
+
+header.wrap{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px 24px;padding-block:28px 18px}
+h1{font-family:var(--f-display);font-weight:400;font-size:clamp(2.4rem,6vw,4.6rem);line-height:.9;margin:0;letter-spacing:.01em;text-wrap:balance}
+h1 span{color:var(--mustard)}
+.sub{margin:8px 0 0;color:var(--ice);font-size:1rem}
+.tools{display:flex;flex-wrap:wrap;gap:8px}
+.btn{border:2px solid var(--snow);background:transparent;border-radius:999px;padding:8px 16px;font-weight:600;font-size:.95rem}
+.btn:hover{background:rgba(244,241,232,.12)}
+.btn.gold{background:var(--mustard);border-color:var(--mustard);color:var(--ink)}
+.btn.gold:hover{filter:brightness(1.08)}
+
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:0 0 18px;font-size:.9rem;color:var(--ice)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+.cal{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;padding:14px;border-radius:14px;background:var(--night2);border:2px solid rgba(143,184,214,.25);box-shadow:0 20px 60px rgba(0,0,0,.35)}
+@media (max-width:900px){.cal{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media (max-width:520px){.cal{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;padding:8px}}
+.slot{position:relative;aspect-ratio:1/1.1;perspective:900px;border-radius:10px;background:var(--cream);min-width:0}
+.slot.big .door{background:radial-gradient(circle at 50% 35%,#E8B95A,var(--mustard) 60%,#B8862A);color:var(--ink)}
+.inside{position:absolute;inset:0;border-radius:10px;padding:10px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;color:var(--ink);background:repeating-linear-gradient(45deg,rgba(28,34,54,.04) 0 6px,transparent 6px 12px),var(--cream)}
+.inside .t{font-family:var(--f-display);font-size:clamp(.85rem,1.4vw,1.05rem);line-height:1.1}
+.inside .k{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.door{position:absolute;inset:0;border:0;border-radius:10px;background:var(--c);transform-origin:left center;transition:transform .7s cubic-bezier(.3,.7,.2,1);display:grid;place-items:center;box-shadow:inset 0 0 0 3px rgba(255,255,255,.18),inset 0 0 0 7px rgba(0,0,0,.08);backface-visibility:hidden;color:var(--snow)}
+.door::after{content:"";position:absolute;right:10px;top:50%;width:8px;height:8px;border-radius:50%;background:var(--mustard);box-shadow:0 0 0 2px rgba(0,0,0,.15)}
+.door b{font-family:var(--f-display);font-weight:400;font-size:clamp(2rem,4.5vw,3.4rem);line-height:1;text-shadow:0 3px 0 rgba(0,0,0,.18)}
+.door:hover{transform:rotateY(-14deg)}
+.slot.open .door{transform:rotateY(-108deg);pointer-events:none}
+.slot.open{cursor:pointer}
+.door.c-cran{--c:var(--cran)} .door.c-pine{--c:var(--pine)} .door.c-mustard{--c:var(--mustard);color:var(--ink)} .door.c-ice{--c:var(--ice);color:var(--ink)} .door.c-plum{--c:var(--plum)} .door.c-rose{--c:#C2577A}
+.slot.big .door b{font-size:clamp(2.6rem,6vw,4.4rem)}
+.slot.big .door small{display:block;font-size:.85rem;text-transform:uppercase;letter-spacing:.14em;margin-top:6px;text-align:center}
+
+footer.wrap{padding-block:22px 40px;color:var(--ice);font-size:.9rem}
+footer details{max-width:80ch}
+footer summary{cursor:pointer;font-weight:600;color:var(--snow)}
+footer ul{padding-left:20px;display:grid;gap:4px}
+
+/* card modal */
+.overlay{position:fixed;inset:0;z-index:50;background:rgba(6,10,20,.72);display:flex;align-items:flex-start;justify-content:center;overflow-y:auto;padding:calc(16px + env(safe-area-inset-top, 0px)) max(12px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(12px, env(safe-area-inset-left, 0px))}
+.card{width:min(1080px,100%);background:var(--snow);color:var(--ink);border-radius:16px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.5);animation:pop .4s cubic-bezier(.3,.7,.2,1.2)}
+@keyframes pop{from{transform:scale(.92);opacity:.3}}
+.ribbon{height:14px;background:linear-gradient(90deg,var(--cran) 0 46%,var(--mustard) 46% 54%,var(--cran) 54%)}
+.chead{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;padding:18px 26px 0}
+.daynum{font-family:var(--f-display);font-size:2.4rem;line-height:1;color:var(--cran)}
+.ctitle{font-family:var(--f-display);font-weight:400;font-size:clamp(1.5rem,3vw,2.2rem);margin:0;line-height:1.05}
+.pill{margin-left:auto;font-weight:700;font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;padding:4px 12px;border-radius:999px;color:var(--snow);background:var(--tc)}
+.how{margin:8px 26px 0;color:var(--muted);font-style:italic}
+.cbody{padding:14px 26px 6px;display:grid;grid-template-columns:minmax(0,1fr) 160px;gap:22px}
+.prompt{font-size:clamp(1.2rem,2.3vw,1.65rem);line-height:1.38;margin:0;text-wrap:pretty}
+.prompt mark{background:linear-gradient(transparent 60%,rgba(217,164,65,.45) 60%);color:inherit}
+.steps{margin:14px 0 0;padding-left:22px;display:grid;gap:6px;font-size:1.08rem}
+.items{list-style:none;margin:14px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.items li{background:var(--cream);border-radius:10px;padding:12px 14px;font-size:1.12rem;line-height:1.35}
+.items li b{font-family:var(--f-display);font-weight:400;color:var(--cran);margin-right:6px}
+.items.emoji li{font-size:2rem;text-align:center;letter-spacing:.08em}
+.items.emoji li b{display:block;font-size:1rem;letter-spacing:0;text-align:left}
+.letter{font-family:"Lexend",system-ui,sans-serif;background:#fff;border:2px dashed var(--cran);border-radius:10px;padding:16px 18px;margin:14px 0 0;font-size:1.2rem;line-height:1.6;color:var(--ink)}
+.bigword{line-height:1.15;margin-top:16px;display:grid;place-items:center;min-height:120px;border-radius:12px;background:var(--night);color:var(--snow);font-family:var(--f-display);font-size:clamp(1.8rem,5vw,3.4rem);text-align:center;padding:14px}
+.bigword small{font-family:var(--f-body);font-size:.45em;color:var(--mustard)}
+.bigword.emoji-big{font-family:var(--f-body);font-size:clamp(2.6rem,7vw,4.6rem);letter-spacing:.12em;background:var(--cream);color:var(--ink)}
+.taboo{display:grid;gap:6px;justify-items:center}.taboo .no{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;font-family:var(--f-body);font-size:1.1rem}.taboo .no span{background:var(--cran);color:var(--snow);padding:3px 12px;border-radius:999px;text-decoration:line-through}
+.bigword.hidden-word{color:var(--ice);font-family:var(--f-body);font-size:1.1rem}
+.rowbtns{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.card .btn{border-color:var(--ink);color:var(--ink)}
+.card .btn:hover{background:rgba(28,34,54,.08)}
+.card .btn.solid{background:var(--ink);color:var(--snow)}
+
+.timer{display:grid;justify-items:center;gap:8px;align-content:start}
+.ring{--p:1;width:132px;height:132px;border-radius:50%;background:conic-gradient(var(--pine) calc(var(--p)*360deg),#DAD5C8 0);display:grid;place-items:center}
+.ring.low{background:conic-gradient(var(--cran) calc(var(--p)*360deg),#DAD5C8 0)}
+.ring.done{animation:jingle .5s ease 4}
+@keyframes jingle{25%{transform:rotate(-8deg)}75%{transform:rotate(8deg)}}
+.ring div{width:104px;height:104px;border-radius:50%;background:var(--snow);display:grid;place-items:center;font-weight:700;font-size:1.8rem;font-variant-numeric:tabular-nums}
+.timer .row{display:flex;gap:6px}
+.timer .btn{padding:5px 12px;font-size:.85rem}
+
+.reveal-row{padding:8px 26px 0}
+.answer{margin:12px 26px 0;border-radius:12px;padding:14px 18px;background:#E3EFE8;border:2px solid var(--good)}
+.answer h3{margin:0 0 6px;font-size:.85rem;text-transform:uppercase;letter-spacing:.1em;color:var(--good)}
+.answer p,.answer li{font-size:1.08rem;margin:4px 0}
+.answer ul,.answer ol{margin:6px 0 0;padding-left:22px}
+.cfoot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px;padding:16px 26px 22px;margin-top:14px;border-top:2px dotted #D8D2C3}
+
+@media (max-width:720px){
+  .cbody{grid-template-columns:1fr}
+  .timer{grid-auto-flow:column;justify-content:start;align-items:center}
+  .ring{width:92px;height:92px}.ring div{width:72px;height:72px;font-size:1.25rem}
+  .chead,.cbody,.reveal-row,.cfoot{padding-left:16px;padding-right:16px}
+  .answer,.how{margin-left:16px;margin-right:16px}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<canvas id="snow" aria-hidden="true"></canvas>
+
+<header class="wrap">
+  <div>
+    <h1>Twenty-Four <span>Doors</span></h1>
+    <p class="sub">A Christmas English calendar for Grade 7 · open any door, think together, share with the class</p>
+  </div>
+  <div class="tools">
+    <button class="btn gold" id="surprise" type="button">Surprise me</button>
+    <button class="btn" id="snowBtn" type="button">Snow: on</button>
+    <button class="btn" id="resetBtn" type="button">Close all doors</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="legend" id="legend"></div>
+  <div class="cal" id="cal"></div>
+</main>
+
+<footer class="wrap">
+  <details>
+    <summary>How to use it</summary>
+    <ul>
+      <li>Students sit in small groups. Open doors in any order, or press "Surprise me".</li>
+      <li>Each door has a timer. Groups talk, write their ideas on a mini whiteboard or paper, then share with the whole class.</li>
+      <li>Change speakers each time so everyone gets a turn.</li>
+      <li>"Reveal" shows answers or ideas. Opened doors stay open; click one to see it again.</li>
+    </ul>
+  </details>
+</footer>
+
+<div class="overlay" id="overlay" hidden>
+  <article class="card" id="card" role="dialog" aria-modal="true" aria-labelledby="ctitle"></article>
+</div>
+
+<script>
+const TYPES={
+  guess:{label:"Guess it",color:"#B23A48",door:"c-cran",how:"Discuss in your group and write down your best guess. Share before you reveal."},
+  talk:{label:"Talk it",color:"#2E6B57",door:"c-pine",how:"Talk it through in your group. Then one speaker shares your ideas with the class."},
+  fix:{label:"Fix it",color:"#6D4C7D",door:"c-plum",how:"Find every mistake and write the corrected version. Compare with another group before you reveal."},
+  puzzle:{label:"Puzzle",color:"#B8862A",door:"c-mustard",how:"Work it out together. Explain HOW you solved it, not only the answer."},
+  act:{label:"Act it",color:"#C2577A",door:"c-rose",how:"Get up and perform! Everyone in the group takes part, and the class watches and responds."},
+  create:{label:"Create",color:"#3E6E8E",sw:"#8FB8D6",door:"c-ice",how:"Create it as a group, then present it to the class."}
+};
+
+const DOORS=[
+ {
+  "type": "guess",
+  "title": "Emoji Cinema: Film 1",
+  "time": 45,
+  "prompt": "This is a famous Christmas film. What is it?",
+  "show": "🏠 😶 👦 ✈️ 👨‍👩‍👧‍👦",
+  "steps": [
+   "Guess the title as a group.",
+   "<b>Then:</b> Your family flies away for Christmas and forgets you at home. What would you do first? Share your silliest plan: <i>If my family forgot me, I would…</i>"
+  ],
+  "ansLabel": "Answer",
+  "answer": "<p><b>Home Alone</b> (1990): eight-year-old Kevin is left at home by mistake and has to protect the house from two burglars.</p>",
+  "d": 1
+ },
+ {
+  "type": "talk",
+  "title": "Christmas Taboo",
+  "time": 60,
+  "special": "taboo",
+  "prompt": "One volunteer sits with their <mark>back to the board</mark>. The class sees the word and gives clues in English, but they can't say the forbidden words! The volunteer has one minute to guess it.",
+  "steps": [
+   "Raise your hand to give a clue. One clue per person.",
+   "No gestures, no Portuguese, no \"it rhymes with…\".",
+   "Change volunteers every round."
+  ],
+  "noReveal": true,
+  "d": 2
+ },
+ {
+  "type": "puzzle",
+  "title": "Riddle: Up and Down",
+  "time": 60,
+  "prompt": "What goes up a chimney <mark>down</mark>, but can't come down a chimney <mark>up</mark>?",
+  "steps": [
+   "Read it slowly. The trick is in the words \"up\" and \"down\".",
+   "<b>Bonus:</b> Mime the answer for the class without saying it."
+  ],
+  "ansLabel": "Answer",
+  "answer": "<p><b>An umbrella!</b> It can go up a chimney when it's closed (down), but not when it's open (up).</p>",
+  "d": 3
+ },
+ {
+  "d": 4,
+  "type": "talk",
+  "title": "This or That?",
+  "time": 45,
+  "list": "THISTHAT",
+  "btn": "Next question",
+  "startText": "Ready? Press \"Next question\"!",
+  "prompt": "Two options appear on the board. Each group has <mark>45 seconds</mark> to agree on ONE answer. Everyone in the group must agree, so you'll need to convince each other!",
+  "steps": [
+   "When the timer ends, each group writes <b>A</b> or <b>B</b> on the whiteboard and holds it up.",
+   "Two groups with different answers explain their choice: <i>We chose… because…</i>",
+   "<b>Twist:</b> The teacher picks one group to defend the option they did NOT choose. Make it convincing!"
+  ],
+  "noReveal": true
+ },
+ {
+  "d": 5,
+  "type": "guess",
+  "title": "Where in the World?",
+  "time": 150,
+  "prompt": "Read each Christmas tradition. Which country or region is it from?",
+  "items": [
+   "<b>A</b> Children \"feed\" a wooden log with a smiley face for weeks. On Christmas Eve they hit it with sticks and sing, and it \"gives\" them sweets.",
+   "<b>B</b> In the capital city, people roller-skate to church services early in the morning.",
+   "<b>C</b> Christmas songs start playing in September, and there is a festival of giant electric lanterns.",
+   "<b>D</b> A scary horned creature with chains visits in early December to frighten children who behaved badly."
+  ],
+  "ansLabel": "Answers",
+  "answer": "<p><b>A</b> Catalonia, Spain (the <i>Tió de Nadal</i>). <b>B</b> Venezuela (Caracas). <b>C</b> The Philippines. <b>D</b> Austria and southern Germany (Krampus).</p><p>Which one would you most like to try?</p>"
+ },
+ {
+  "d": 6,
+  "type": "fix",
+  "title": "Fix Leo's Card",
+  "time": 120,
+  "prompt": "Leo wrote a Christmas card to his best friend Tom, who moved to another city. It has <mark>four</mark> grammar mistakes. Find them all!",
+  "letter": "Dear Tom,<br>I wish you are here with us this Christmas! If you would come, we will make your favourite chocolate cake. Mum suggested to buy you a new scarf, and I hope seeing you very soon.<br>Love,<br>Leo",
+  "ansLabel": "Corrected card",
+  "answer": "<p>I wish you <b>were</b> here… · If you <b>came</b>, we <b>would</b> make… (or: If you <b>come</b>, we <b>will</b> make…) · Mum suggested <b>buying</b>… · I hope <b>to see</b> you…</p><p>Remember: <i>wish + past</i>, no <i>would</i> after <i>if</i>, <i>suggest + -ing</i>, <i>hope + to</i>.</p>"
+ },
+ {
+  "d": 7,
+  "type": "create",
+  "title": "Christmas Pictionary",
+  "time": 60,
+  "special": "pict",
+  "prompt": "One person from a group draws on the board. No letters, no numbers, no talking! The class guesses.",
+  "steps": [
+   "The class looks away while the artist sees the word.",
+   "Change artists every round."
+  ],
+  "noReveal": true
+ },
+ {
+  "type": "guess",
+  "title": "Emoji Cinema: Film 2",
+  "time": 45,
+  "prompt": "Another Christmas film. What is it?",
+  "show": "🐻‍❄️ 🚂 🎫 🔔",
+  "steps": [
+   "Guess the title as a group.",
+   "<b>Then:</b> You find a golden ticket for a magic train that leaves at midnight. Where does it take your group? Describe its three stops."
+  ],
+  "ansLabel": "Answer",
+  "answer": "<p><b>The Polar Express</b> (2004): a boy takes a magic train to the North Pole on Christmas Eve and receives the first gift of Christmas, a silver bell.</p>",
+  "d": 8
+ },
+ {
+  "d": 9,
+  "type": "talk",
+  "title": "What Is a Scrooge?",
+  "time": 90,
+  "prompt": "In <i>A Christmas Carol</i> (1843), Charles Dickens created Ebenezer Scrooge, who answers \"Merry Christmas\" with <mark>\"Bah! Humbug!\"</mark>. Today, <i>scrooge</i> is a word in English dictionaries. What do you think it means?",
+  "steps": [
+   "Write a definition in your own words.",
+   "Think of a situation where you could call someone \"a scrooge\" (no real names!)."
+  ],
+  "ansLabel": "Meaning",
+  "answer": "<p><b>a scrooge</b> (noun): a person who hates spending money, or who refuses to enjoy celebrations. <i>\"Don't be such a scrooge, buy some decorations!\"</i></p><p>\"Humbug\" means nonsense, or something false.</p>"
+ },
+ {
+  "type": "puzzle",
+  "title": "Riddle: Getting Shorter",
+  "time": 60,
+  "prompt": "I'm tall when I'm young and short when I'm old. On Christmas Eve, I light up the room. What am I?",
+  "steps": [
+   "Solve it as a group.",
+   "<b>Bonus:</b> Write your own riddle using the same pattern: <i>I'm ___ when I'm young and ___ when I'm old.</i> Can the class solve it?"
+  ],
+  "ansLabel": "Answer",
+  "answer": "<p><b>A candle!</b> It gets shorter as it burns.</p><p>Riddle idea: <i>I'm round and white, I have a carrot nose, and I disappear when the sun comes out. What am I?</i></p>",
+  "d": 10
+ },
+ {
+  "d": 11,
+  "type": "create",
+  "title": "Snow Globe Mystery",
+  "time": 300,
+  "prompt": "Write the opening of a Christmas mystery story in exactly <mark>five sentences</mark>.",
+  "steps": [
+   "It must include: a missing present, a snow globe, and a strange message.",
+   "Use at least one conditional and the word <i>unless</i>.",
+   "End with a cliffhanger. Read it to the class in your most dramatic voice!"
+  ],
+  "ansLabel": "Need an idea?",
+  "answer": "<p><i>\"On Christmas Eve, the biggest present under the tree disappeared. The only clue was the old snow globe on the shelf, which was suddenly cracked. Inside it, someone had hidden a tiny note: 'Don't open the door unless you hear three knocks.' If I had listened, I would have stayed in bed. Then, at midnight, someone knocked… four times.\"</i></p>"
+ },
+ {
+  "d": 12,
+  "type": "create",
+  "title": "The Impossible Gift Shop",
+  "time": 240,
+  "list": "CUSTOMERS",
+  "btn": "Next customer",
+  "startText": "🛎️ A customer is coming in…",
+  "prompt": "Your group works in a very strange gift shop. Very strange customers come in. Find the <mark>perfect Christmas present</mark> for each one!",
+  "steps": [
+   "Press \"Next customer\" to see who walks in.",
+   "Choose (or invent) the perfect gift. You have a budget of R$50.",
+   "Sell it to the class like a real shop assistant: <i>This would be perfect for you because… You'll love using it to…</i>"
+  ],
+  "ansLabel": "Shop assistant phrases",
+  "answer": "<p><i>Can I help you? · Have you thought about…? · It's very popular this year. · It comes in three colours. · You won't regret it! · Shall I gift-wrap it for you?</i></p>"
+ },
+ {
+  "d": 13,
+  "type": "guess",
+  "title": "Christmas Idioms",
+  "time": 120,
+  "prompt": "What do these English expressions mean? Guess from the words.",
+  "items": [
+   "<b>1</b> \"Our living room was <i>lit up like a Christmas tree</i>.\"",
+   "<b>2</b> \"Asking for more homework would be <i>like turkeys voting for Christmas</i>.\"",
+   "<b>3</b> \"I'm not getting you a present, so don't <i>count your chickens</i>.\"",
+   "<b>4</b> \"Christmas shopping on 24 December is a <i>race against the clock</i>.\""
+  ],
+  "ansLabel": "Meanings",
+  "answer": "<ol><li>very brightly lit, with lots of lights</li><li>choosing something that is very bad for you</li><li>don't expect something good before it happens (from <i>don't count your chickens before they hatch</i>)</li><li>trying to finish something very quickly before a deadline</li></ol><p>Which one could you use this week?</p>"
+ },
+ {
+  "type": "guess",
+  "title": "Emoji Cinema: Story 3",
+  "time": 60,
+  "prompt": "This one is a famous Christmas <mark>book</mark>. What is it? Then: count the ghosts!",
+  "show": "👴 💰 🔗 👻 👻 👻 👻 🦃",
+  "steps": [
+   "Name the book and its author.",
+   "There are FOUR ghosts. Who are they?"
+  ],
+  "ansLabel": "Answer",
+  "answer": "<p><b>A Christmas Carol</b> by Charles Dickens (1843).</p><p>The four ghosts: <b>Marley's Ghost</b>, the <b>Ghost of Christmas Past</b>, the <b>Ghost of Christmas Present</b> and the <b>Ghost of Christmas Yet to Come</b>. The turkey is the giant prize turkey Scrooge buys for the Cratchit family at the end!</p>",
+  "d": 14
+ },
+ {
+  "d": 15,
+  "type": "act",
+  "title": "It Wasn't Me!",
+  "time": 120,
+  "list": "EXCUSES",
+  "btn": "Next disaster",
+  "startText": "🚨 What happened?",
+  "prompt": "Something terrible happened at Christmas, and <mark>you</mark> are the main suspect! In pairs: one person is the detective, the other invents the most creative excuse ever.",
+  "steps": [
+   "Press \"Next disaster\".",
+   "The detective asks three questions: <i>Where were you at…? What were you doing when…? Why is there… on your hands?</i>",
+   "The suspect must answer every question and never confess! Use the past continuous: <i>I was sleeping when…</i>",
+   "Volunteers perform. Which excuse is the most creative?"
+  ],
+  "noReveal": true
+ },
+ {
+  "d": 16,
+  "type": "create",
+  "title": "The Ghost of Christmas Future",
+  "time": 180,
+  "prompt": "In <i>A Christmas Carol</i>, three spirits visit Scrooge: the Ghosts of Christmas Past, Present and Yet to Come. Imagine the <mark>Ghost of Christmas 2036</mark> visits your group. What does it show you?",
+  "steps": [
+   "Describe the scene: Where are you? Who is there? What has changed?",
+   "Use <i>will</i> for predictions and <i>if… would</i> for imaginary ideas.",
+   "Present it like a movie trailer."
+  ],
+  "ansLabel": "Language help",
+  "answer": "<p><i>In 2036, we'll be… · Christmas presents will probably be… · If robots cooked Christmas dinner, we would… · I hope I'll still…</i></p>"
+ },
+ {
+  "type": "puzzle",
+  "title": "Riddle: In the Snow",
+  "time": 60,
+  "prompt": "The more you take, the more you leave behind in the snow. What are they?",
+  "steps": [
+   "Solve it as a group.",
+   "<b>Bonus:</b> Look out of the window (or imagine it). Write a mini mystery: <i>Whose footprints are these, and where do they go?</i> Two sentences."
+  ],
+  "ansLabel": "Answer",
+  "answer": "<p><b>Footsteps!</b> Every step you take leaves a footprint behind.</p>",
+  "d": 17
+ },
+ {
+  "d": 18,
+  "type": "fix",
+  "title": "Santa's To-Do List",
+  "time": 120,
+  "prompt": "Santa wrote his list in a hurry. Four lines have a mistake, and <mark>one is correct</mark>. Which is which?",
+  "letter": "1. Read the childrens' letters.<br>2. Repair the elfs' workshop.<br>3. Polish Santas sleigh.<br>4. Taste Mrs Claus's cookies.<br>5. Tell the reindeer to behave theirselves.",
+  "ansLabel": "Corrected list",
+  "answer": "<ol><li>the <b>children's</b> letters (irregular plural + 's)</li><li>the <b>elves'</b> workshop (plural of elf = elves)</li><li><b>Santa's</b> sleigh</li><li>Correct! (Claus's and Claus' are both fine.)</li><li>behave <b>themselves</b> (<i>theirselves</i> isn't a word)</li></ol>"
+ },
+ {
+  "d": 19,
+  "type": "create",
+  "title": "Santa Is Retiring!",
+  "time": 300,
+  "prompt": "After hundreds of years, Santa wants to retire to a beach in Bahia. The North Pole needs a <mark>new Santa</mark>! Your group writes the job advert.",
+  "steps": [
+   "Write the advert: job title, three things the person must be able to do, two \"nice to have\" skills, working hours, and the salary (paid in cookies?).",
+   "Then two volunteers role-play the job interview: the head elf asks the questions, and the candidate tries to get the job.",
+   "Interview questions: <i>Why do you want this job? Are you afraid of heights? What would you do if a reindeer refused to fly?</i>"
+  ],
+  "ansLabel": "Useful language",
+  "answer": "<p><i>We are looking for… · You must be able to… · Experience in… is essential. · You will be responsible for… · I'm good at… · I'm used to working at night. · I've always wanted to…</i></p>"
+ },
+ {
+  "type": "guess",
+  "title": "Emoji Cinema: Film 4",
+  "time": 60,
+  "prompt": "Who is this grumpy character, and what is the story?",
+  "show": "💚 😠 🎁 🛷 🏔️",
+  "steps": [
+   "Guess the title.",
+   "<b>Then:</b> This character hates the noise of Christmas. List five Christmas sounds he can't stand. Use <i>-ing</i>: <i>He can't stand hearing children singing…</i>"
+  ],
+  "ansLabel": "Answer",
+  "answer": "<p><b>How the Grinch Stole Christmas</b> (Dr. Seuss, 1957): a green, grumpy creature steals all the presents from the town of Whoville, but Christmas comes anyway, and his small heart grows three sizes.</p><p>Like Scrooge, he changes at the end!</p>",
+  "d": 20
+ },
+ {
+  "d": 21,
+  "type": "talk",
+  "title": "Presents for Our Characters",
+  "time": 180,
+  "prompt": "Choose a Christmas present for each person we met this year: <mark>Max</mark>, <mark>Martin</mark>, <mark>Jane Austen</mark> and <mark>Virginia Woolf</mark>.",
+  "steps": [
+   "Explain each choice with <i>because</i>.",
+   "Use verb patterns: <i>She would enjoy reading…, He needs to learn…, It would help her to…</i>",
+   "Which present is the most meaningful? Share it with the class."
+  ],
+  "ansLabel": "Some ideas",
+  "answer": "<p>Max: a letter that finally arrives · Martin: a mirror, so he can see who he has become · Jane Austen: a book cover with her real name on it · Virginia Woolf: the key to a room of her own.</p>"
+ },
+ {
+  "type": "puzzle",
+  "title": "Riddle: The Ugly Jumper",
+  "time": 150,
+  "prompt": "What has a neck but no head, and two arms but no hands, and comes out of the wardrobe every December?",
+  "steps": [
+   "Solve it as a group.",
+   "<b>Bonus:</b> Design the ugliest one ever! Draw it and describe it with adjectives in the right order: <i>opinion → size → colour → material</i>.",
+   "Example: <i>a horrible, enormous, orange woollen…</i>"
+  ],
+  "ansLabel": "Answer",
+  "answer": "<p><b>A Christmas jumper!</b> (In American English: a <i>sweater</i>.) In the UK, many schools and offices have a Christmas Jumper Day, and the uglier the jumper, the better.</p>",
+  "d": 22
+ },
+ {
+  "d": 23,
+  "type": "create",
+  "title": "Christmas Blockbuster",
+  "time": 300,
+  "prompt": "A film studio wants a <mark>new Christmas film</mark> for next year, and it has to be completely different from anything we've seen before. Your group has five minutes to invent it!",
+  "steps": [
+   "Choose a genre: horror, action, comedy, sci-fi, detective or romance.",
+   "Decide: title · main character · the problem · the surprise twist · a tagline for the poster.",
+   "Pitch it to the class in one minute, like a movie trailer: <i>\"This Christmas… one elf… will change everything.\"</i>"
+  ],
+  "ansLabel": "Example",
+  "answer": "<p><b>\"Silent Night Shift\"</b> (sci-fi comedy): a robot elf is programmed to deliver presents, but on Christmas Eve it decides it wants to RECEIVE presents instead. <i>Tagline: This year, the elf wants a list.</i></p>"
+ },
+ {
+  "d": 24,
+  "type": "act",
+  "title": "The Great Christmas Charades",
+  "time": 60,
+  "big": true,
+  "list": "CHARADES",
+  "btn": "Next scene",
+  "startText": "🎭 Who's first?",
+  "prompt": "The grand finale! One volunteer (or a pair) <mark>mimes the scene</mark> without speaking. The class describes what's happening, in English, in full sentences.",
+  "steps": [
+   "The class looks away while the actors read the scene. Then press \"Hide it\".",
+   "Guess with the present continuous: <i>You're wrapping a present… and it's moving!</i>",
+   "The scene is solved when someone describes the WHOLE situation."
+  ],
+  "noReveal": true,
+  "hideable": true
+ }
+];
+
+const PICT=["snowman","chimney","reindeer","gingerbread house","wrapping paper","fireworks","sledge","Christmas jumper","advent calendar","mistletoe","candy cane","snow globe","ice skating","New Year's Eve","Santa stuck in a chimney","a cracker","fairy lights","the Polar Express","a sleepy elf","Boxing Day sales"];
+const TABOO=[["Santa Claus","beard","red","presents","chimney"],["snowman","snow","carrot","cold","build"],["reindeer","Rudolph","animal","antlers","sleigh"],["Christmas tree","green","lights","decorate","pine"],["Scrooge","money","mean","ghost","Dickens"],["fireworks","New Year","sky","bang","colours"],["gingerbread man","biscuit","cookie","brown","eat"],["elf","Santa","small","ears","workshop"],["wrapping paper","present","gift","cover","tape"],["panettone","Italian","cake","raisins","bread"],["chimney","roof","smoke","fire","Santa"],["advent calendar","doors","24","December","chocolate"],["Tiny Tim","Cratchit","small","boy","ill"],["snowball","snow","throw","fight","cold"],["carol","song","sing","Christmas","music"]];
+const LISTS={
+THISTHAT:["<div>A: a real Christmas tree 🌲<br><small>or</small><br>B: a fake Christmas tree</div>","<div>A: panettone<br><small>or</small><br>B: chocotone</div>","<div>A: open presents at midnight on the 24th<br><small>or</small><br>B: open presents on the morning of the 25th</div>","<div>A: a Christmas with snow ❄️<br><small>or</small><br>B: a Christmas on the beach 🏖️</div>","<div>A: giving presents<br><small>or</small><br>B: receiving presents</div>","<div>A: Christmas songs in November<br><small>or</small><br>B: no Christmas songs until December</div>","<div>A: be an elf for a day<br><small>or</small><br>B: be a reindeer for a day</div>","<div>A: an ugly Christmas jumper<br><small>or</small><br>B: matching family pyjamas</div>","<div>A: Secret Santa (amigo secreto)<br><small>or</small><br>B: no presents at all</div>","<div>A: turkey for Christmas dinner<br><small>or</small><br>B: lasagne for Christmas dinner</div>","<div>A: know what all your presents are<br><small>or</small><br>B: get one big surprise present in July</div>","<div>A: spend Christmas with 50 relatives<br><small>or</small><br>B: spend Christmas alone with a pizza</div>"],
+CUSTOMERS:["🧛 a vampire who is afraid of the dark","🐧 a penguin who is always cold","🦖 a T-rex who can't reach anything with its tiny arms","🎅 Santa himself (he has EVERYTHING)","👽 an alien visiting Earth for the first time","🐱 a cat who thinks it's a dog","👩‍🏫 your English teacher, who says she wants nothing","🧟 a zombie who wants to make friends","🤖 a robot who wants to feel emotions","🦄 a unicorn who hates glitter"],
+EXCUSES:["All the Christmas chocolates have disappeared, and there's chocolate on your face.","The Christmas tree fell over and all the decorations broke.","Santa's sleigh is stuck on the roof of your house.","The whole Christmas dinner is burnt.","You forgot to buy a present for your best friend.","The dog opened all the presents… or did it?","Someone put salt in the Christmas pudding instead of sugar.","There are reindeer footprints all over the sofa.","The class Secret Santa list was posted on Instagram.","The neighbour's inflatable Santa has a big hole in it."],
+CHARADES:["Wrapping a present… that is alive","Decorating a Christmas tree that keeps falling over","Santa stuck in a chimney","Eating far too much at Christmas dinner","Building a snowman in 40°C heat","A reindeer learning to fly for the first time","Opening a present and pretending to love it","Ice skating for the very first time","Trying to stay awake to see Santa","An elf who is terrible at making toys","Taking a family Christmas photo that goes wrong","Trying to untangle Christmas lights"]};
+const MINUTE=["The best present I have ever received","Why December should be a month without homework","My perfect Christmas dinner","If I were Santa for one day","The worst thing about Christmas","A Christmas tradition my family has","Why summer Christmas is better (or worse)","The perfect present for a teacher","What I would change about New Year's Eve","Real tree or fake tree?"];
+
+/* ---------- state ---------- */
+const KEY="tfd-g7-christmas-v1";
+let state={opened:{},snow:true};
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.opened)return s}catch(e){}return null}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(state))}catch(e){}}
+const $=s=>document.querySelector(s);
+
+/* ---------- calendar ---------- */
+function renderLegend(){
+  $("#legend").innerHTML=Object.values(TYPES).map(t=>`<span><i style="background:${t.sw||t.color}"></i>${t.label}</span>`).join("");
+}
+function renderCal(){
+  const cal=$("#cal");cal.innerHTML="";
+  const order=DOORS.map(D=>D.d);
+  order.forEach(day=>{
+    const D=DOORS[day-1],T=TYPES[D.type],open=!!state.opened[day];
+    const s=document.createElement("div");s.className="slot"+(D.big?" big":"")+(open?" open":"");s.dataset.day=day;
+    s.innerHTML=`<div class="inside"><span class="k">${T.label}</span><span class="t">${D.title}</span></div>
+      <button type="button" class="door ${T.door}" aria-label="Door ${day}: ${T.label}${open?", already opened":""}"><span><b>${day}</b>${D.big?"<small>Christmas Eve</small>":""}</span></button>`;
+    s.querySelector(".door").onclick=()=>openDoor(day,s);
+    s.onclick=e=>{if(s.classList.contains("open")&&!e.target.closest(".door"))showCard(day)};
+    cal.appendChild(s);
+  });
+}
+function openDoor(day,slot){
+  if(slot.classList.contains("open")){showCard(day);return}
+  slot.classList.add("open");state.opened[day]=true;save();
+  const reduce=matchMedia("(prefers-reduced-motion: reduce)").matches;
+  setTimeout(()=>showCard(day),reduce?0:650);
+}
+
+/* ---------- card ---------- */
+let timerInt=null,audioCtx=null;
+function fmt(s){return Math.floor(s/60)+":"+String(s%60).padStart(2,"0")}
+function showCard(day){
+  const D=DOORS[day-1],T=TYPES[D.type];
+  let body=`<p class="prompt">${D.prompt}</p>`;
+  if(D.show)body+=`<div class="bigword emoji-big">${D.show}</div>`;
+  if(D.letter)body+=`<div class="letter">${D.letter}</div>`;
+  if(D.items)body+=`<ul class="items${D.emoji?" emoji":""}">${D.items.map(i=>`<li>${i}</li>`).join("")}</ul>`;
+  if(D.steps)body+=`<ol class="steps">${D.steps.map(s=>`<li>${s}</li>`).join("")}</ol>`;
+  if(D.special==="pict")body+=`<div class="bigword hidden-word" id="word">Press "Show the word" when the class is looking away.</div><div class="rowbtns"><button class="btn solid" id="showWord" type="button">Show the word (5 seconds)</button><button class="btn" id="tellWord" type="button">Reveal it to everyone</button></div>`;
+  if(D.special==="taboo")body+=`<div class="bigword taboo" id="word"></div><div class="rowbtns"><button class="btn solid" id="nextCard" type="button">Next card</button></div>`;
+  if(D.list)body+=`<div class="bigword" id="word">${D.startText}</div><div class="rowbtns"><button class="btn solid" id="nextItem" type="button">${D.btn}</button>${D.hideable?'<button class="btn" id="hideItem" type="button">Hide it</button>':""}</div>`;
+  if(D.special==="minute")body+=`<div class="bigword" id="word">${MINUTE[Math.floor(Math.random()*MINUTE.length)]}</div><div class="rowbtns"><button class="btn solid" id="newTopic" type="button">New topic</button></div>`;
+  $("#card").innerHTML=`<div class="ribbon" aria-hidden="true"></div>
+    <div class="chead"><span class="daynum">${day}</span><h2 class="ctitle" id="ctitle">${D.title}</h2><span class="pill" style="--tc:${T.color}">${T.label}</span></div>
+    <p class="how">${T.how}</p>
+    <div class="cbody"><div>${body}</div>
+      <div class="timer"><div class="ring" id="ring"><div id="tleft">${fmt(D.time)}</div></div><div class="row"><button class="btn solid" id="tgo" type="button">Start</button><button class="btn" id="treset" type="button">Reset</button></div></div>
+    </div>
+    ${D.noReveal?"":`<div class="reveal-row"><button class="btn solid" id="revealBtn" type="button">Reveal: ${D.ansLabel}</button></div><div id="ans" hidden><div class="answer"><h3>${D.ansLabel}</h3>${D.answer}</div></div>`}
+    <div class="cfoot"><button class="btn solid" id="closeBtn" type="button">Back to the calendar</button></div>`;
+  wire(D);
+  $("#overlay").hidden=false;document.body.style.overflow="hidden";$("#overlay").scrollTop=0;
+  setTimeout(()=>$("#tgo").focus({preventScroll:true}),50);
+}
+function wire(D){
+  const sec=D.time;let left=sec,running=false;
+  const ring=$("#ring"),tl=$("#tleft"),go=$("#tgo");
+  const paint=()=>{tl.textContent=fmt(left);ring.style.setProperty("--p",left/sec);ring.classList.toggle("low",left<=10)};
+  const stop=()=>{clearInterval(timerInt);timerInt=null;running=false;go.textContent="Start"};
+  go.onclick=()=>{
+    try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)()}catch(e){}
+    if(running){stop();return}
+    if(left<=0){left=sec;ring.classList.remove("done")}
+    running=true;go.textContent="Pause";
+    timerInt=setInterval(()=>{left--;paint();if(left<=0){stop();ring.classList.add("done");bells()}},1000);
+  };
+  $("#treset").onclick=()=>{stop();left=sec;ring.classList.remove("done");paint()};
+  paint();
+  const rb=$("#revealBtn");
+  if(rb)rb.onclick=()=>{$("#ans").hidden=false;rb.hidden=true;$("#ans").scrollIntoView({behavior:"smooth",block:"nearest"})};
+  $("#closeBtn").onclick=closeCard;
+  if(D.special==="pict"){
+    let cur=null,hideT=null;const w=$("#word");
+    const pick=()=>{let n;do{n=PICT[Math.floor(Math.random()*PICT.length)]}while(n===cur&&PICT.length>1);cur=n};
+    pick();
+    $("#showWord").onclick=()=>{
+      clearTimeout(hideT);w.classList.remove("hidden-word");w.textContent=cur;
+      hideT=setTimeout(()=>{w.classList.add("hidden-word");w.textContent="Word hidden. Start drawing!"},5000);
+      $("#showWord").textContent="Next word (5 seconds)";
+      $("#showWord").onclick=()=>{pick();clearTimeout(hideT);w.classList.remove("hidden-word");w.textContent=cur;hideT=setTimeout(()=>{w.classList.add("hidden-word");w.textContent="Word hidden. Start drawing!"},5000)};
+    };
+    $("#tellWord").onclick=()=>{clearTimeout(hideT);w.classList.remove("hidden-word");w.textContent=cur};
+  }
+  const cycle=(list,btn,render)=>{let i=Math.floor(Math.random()*list.length);const go=()=>{i=(i+1)%list.length;render(list[i])};$(btn).onclick=go;return go};
+  if(D.special==="taboo"){const go=cycle(TABOO,"#nextCard",t=>{$("#word").innerHTML=`<div>${t[0]}</div><div class="no">${t.slice(1).map(x=>"<span>"+x+"</span>").join("")}</div>`});go()}
+  if(D.list){const L=LISTS[D.list];cycle(L,"#nextItem",g=>{const w=$("#word");w.classList.remove("hidden-word");w.innerHTML=g});const h=$("#hideItem");if(h)h.onclick=()=>{const w=$("#word");w.classList.add("hidden-word");w.textContent="Scene hidden. Action! 🎬"}}
+  if(D.special==="minute"){
+    $("#newTopic").onclick=()=>{const w=$("#word");let n;do{n=MINUTE[Math.floor(Math.random()*MINUTE.length)]}while(n===w.textContent);w.textContent=n};
+  }
+}
+function bells(){
+  if(!audioCtx)return;
+  try{[0,.18,.36,.72].forEach((d,i)=>{const o=audioCtx.createOscillator(),g=audioCtx.createGain();o.type="triangle";o.frequency.value=[1319,1319,1319,1047][i];o.connect(g);g.connect(audioCtx.destination);const t=audioCtx.currentTime+d;g.gain.setValueAtTime(.18,t);g.gain.exponentialRampToValueAtTime(.001,t+.35);o.start(t);o.stop(t+.36)})}catch(e){}
+}
+function closeCard(){clearInterval(timerInt);timerInt=null;$("#overlay").hidden=true;document.body.style.overflow=""}
+document.addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("#overlay").hidden)closeCard()});
+$("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay")closeCard()});
+
+$("#surprise").onclick=()=>{
+  const closed=DOORS.filter(D=>!state.opened[D.d]&&D.d!==24).map(D=>D.d);
+  const pool=closed.length?closed:(state.opened[24]?DOORS.map(D=>D.d):[24]);
+  const day=pool[Math.floor(Math.random()*pool.length)];
+  const slot=document.querySelector(`.slot[data-day="${day}"]`);
+  slot.scrollIntoView({behavior:"smooth",block:"center"});
+  setTimeout(()=>openDoor(day,slot),300);
+};
+let resetArm=null;
+$("#resetBtn").onclick=()=>{
+  const b=$("#resetBtn");
+  if(!resetArm){b.textContent="Tap again to close all";resetArm=setTimeout(()=>{b.textContent="Close all doors";resetArm=null},3000);return}
+  clearTimeout(resetArm);resetArm=null;b.textContent="Close all doors";
+  state.opened={};save();renderCal();
+};
+
+/* ---------- snow ---------- */
+const cv=$("#snow"),ctx=cv.getContext("2d");let flakes=[],raf=null;
+function sizeSnow(){cv.width=innerWidth*devicePixelRatio;cv.height=innerHeight*devicePixelRatio;flakes=Array.from({length:Math.min(140,Math.round(innerWidth/9))},()=>({x:Math.random()*cv.width,y:Math.random()*cv.height,r:(Math.random()*2+0.8)*devicePixelRatio,s:(Math.random()*.6+.3)*devicePixelRatio,w:Math.random()*Math.PI*2}))}
+function tick(){
+  ctx.clearRect(0,0,cv.width,cv.height);ctx.fillStyle="rgba(244,241,232,.75)";
+  flakes.forEach(f=>{f.y+=f.s;f.w+=.01;f.x+=Math.sin(f.w)*.4*devicePixelRatio;if(f.y>cv.height){f.y=-5;f.x=Math.random()*cv.width}ctx.beginPath();ctx.arc(f.x,f.y,f.r,0,Math.PI*2);ctx.fill()});
+  raf=requestAnimationFrame(tick);
+}
+function setSnow(on){
+  state.snow=on;save();$("#snowBtn").textContent="Snow: "+(on?"on":"off");
+  cancelAnimationFrame(raf);ctx.clearRect(0,0,cv.width,cv.height);
+  if(on&&!matchMedia("(prefers-reduced-motion: reduce)").matches)tick();
+}
+$("#snowBtn").onclick=()=>setSnow(!state.snow);
+addEventListener("resize",()=>{sizeSnow()});
+
+function start(data){
+  state=(data&&data.opened)?data:(load()||{opened:{},snow:true});
+  renderLegend();renderCal();sizeSnow();setSnow(state.snow!==false);
+}
+try{window.claude?.hot?.snapshot?.(()=>state)}catch(e){}
+window.claude?.hot?.ready ? window.claude.hot.ready(start) : start(window.claude?.hot?.data ?? null);
+</script>
+</body>
+</html>
